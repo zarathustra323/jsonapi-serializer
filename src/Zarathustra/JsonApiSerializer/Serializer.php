@@ -8,5 +8,6 @@ class Serializer
     {
         var_dump(__METHOD__);
         die();
+
     }
 }
