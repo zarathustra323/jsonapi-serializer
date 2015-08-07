@@ -1,0 +1,23 @@
+{
+    "name": "zarathustra/jsonapi-serializer",
+    "license": "Apache-2.0",
+    "type": "library",
+    "description": "A PHP Serializer following the JSON API specification.",
+    "authors": [
+        {
+            "name": "Jacob Bare",
+            "email": "jbare@southcomm.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "Zarathustra\\JsonApiSerializer": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.4",
+    },
+    "require-dev": {
+    }
+}
