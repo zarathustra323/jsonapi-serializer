@@ -9,7 +9,6 @@
             "email": "jbare@southcomm.com"
         }
     ],
-    "minimum-stability": "dev",
     "autoload": {
         "psr-0": {
             "Zarathustra\\JsonApiSerializer": "src/"
@@ -17,7 +16,5 @@
     },
     "require": {
         "php": ">=5.4"
-    },
-    "require-dev": {
     }
 }
