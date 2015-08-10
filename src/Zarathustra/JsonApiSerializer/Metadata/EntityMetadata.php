@@ -11,6 +11,20 @@ namespace Zarathustra\JsonApiSerializer\Metadata;
 class EntityMetadata
 {
     /**
+     * The id key name and type.
+     * Per the JSON API spec, it must be 'id' with a data type of 'string.'
+     */
+    const ID_KEY  = 'id';
+    const ID_TYPE = 'string';
+
+    /**
+     * Whether this class is considered abstract.
+     *
+     * @var bool
+     */
+    public $abstract = false;
+
+    /**
      * Uniquely defines the type of entity.
      * The value is used as the "type" field of the JSON API spec's resource identifier object.
      *
@@ -38,13 +52,74 @@ class EntityMetadata
      * Constructor.
      *
      * @param   string  $type   The resource identifier type.
-     * @param   string  $idType The identifier data type.
-     * @param   string  $idKey  The identifier field key.
      */
-    public function __construct($type, $idType = 'string', $idKey = 'id')
+    public function __construct($type)
     {
         $this->type = $type;
-        $this->addAttribute(new AttributeMetadata($idKey, $idType));
+    }
+
+    /**
+     * Merges an EntityMetadata instance with this instance.
+     * For use with entity class extension.
+     *
+     * @param   EntityMetadata  $metadata
+     * @return  self
+     */
+    public function merge(EntityMetadata $metadata)
+    {
+        $this->type = $metadata->type;
+        $this->setAbstract($metadata->isAbstract());
+        $this->mergeAttributes($metadata->getAttributes());
+        $this->mergeRelationships($metadata->getRelationships());
+        return $this;
+    }
+
+    /**
+     * Merges attributes with this instance's attributes.
+     *
+     * @param   array   $toAdd
+     * @return  self
+     */
+    private function mergeAttributes(array $toAdd)
+    {
+        $this->attributes = array_merge($this->attributes(), $toAdd);
+        ksort($this->attributes);
+        return $this;
+    }
+
+    /**
+     * Merges relationships with this instance's relationships.
+     *
+     * @param   array   $toAdd
+     * @return  self
+     */
+    private function mergeRelationships(array $toAdd)
+    {
+        $this->relationships = array_merge($this->relationships(), $toAdd);
+        ksort($this->relationships);
+        return $this;
+    }
+
+    /**
+     * Whether this metadata represents an abstract class.
+     *
+     * @return  bool
+     */
+    public function isAbstract()
+    {
+        return (Boolean) $this->abstract;
+    }
+
+    /**
+     * Sets this metadata as representing an abstract class.
+     *
+     * @param   bool    $bit
+     * @return  self
+     */
+    public function setAbstract($bit = false)
+    {
+        $this->abstract = (Boolean) $bit;
+        return $this;
     }
 
     /**
@@ -56,6 +131,7 @@ class EntityMetadata
     public function addAttribute(AttributeMetadata $attribute)
     {
         $this->attributes[$attribute->getKey()] = $attribute;
+        ksort($this->attributes);
         return $this;
     }
 
@@ -104,6 +180,7 @@ class EntityMetadata
     public function addRelationship(RelationshipMetadata $relationship)
     {
         $this->relationships[$relationship->getKey()] = $relationship;
+        ksort($this->relationships);
         return $this;
     }
 
