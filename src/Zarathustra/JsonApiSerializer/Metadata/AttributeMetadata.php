@@ -51,7 +51,7 @@ class AttributeMetadata extends FieldMetadata
      */
     protected function validateType($type)
     {
-        $valid = ['array', 'boolean', 'date', 'float', 'integer', 'string'];
+        $valid = ['collection', 'hash', 'boolean', 'date', 'float', 'integer', 'string'];
         $type = strtolower($type);
         if (!in_array($type, $valid)) {
             throw new \InvalidArgumentException(sprintf('The relationship type "%s" is not valid. Valid types are "%s"', $type, implode(', ', $types)));
