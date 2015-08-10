@@ -2,6 +2,9 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata;
 
+use Zarathustra\JsonApiSerializer\Utility;
+use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
+
 /**
  * Defines serialization metadata for an entity (e.g. a database object).
  * Should be loaded using the MetadataFactory, not instantiated directly.
@@ -55,7 +58,7 @@ class EntityMetadata
      */
     public function __construct($type)
     {
-        $this->type = $type;
+        $this->setType($type);
     }
 
     /**
@@ -67,10 +70,26 @@ class EntityMetadata
      */
     public function merge(EntityMetadata $metadata)
     {
-        $this->type = $metadata->type;
+        $this->setType($metadata->type);
         $this->setAbstract($metadata->isAbstract());
         $this->mergeAttributes($metadata->getAttributes());
         $this->mergeRelationships($metadata->getRelationships());
+        return $this;
+    }
+
+    /**
+     * Sets the entity type.
+     *
+     * @param   string  $type
+     * @return  self
+     * @throws  InvalidArgumentException If the type is not a string or is empty.
+     */
+    public function setType($type)
+    {
+        if (!is_string($type) || empty($type)) {
+            throw new InvalidArgumentException('The entity metadata type must be a non-empty string.');
+        }
+        $this->type = Utility::formatEntityType($type);
         return $this;
     }
 
@@ -116,7 +135,7 @@ class EntityMetadata
      * @param   bool    $bit
      * @return  self
      */
-    public function setAbstract($bit = false)
+    public function setAbstract($bit = true)
     {
         $this->abstract = (Boolean) $bit;
         return $this;
