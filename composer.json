@@ -16,5 +16,8 @@
     },
     "require": {
         "php": ">=5.4"
-    }
+    },
+    "suggest": {
+        "symfony/yaml": "Required if you'd like load metadata from YAML format."
+    },
 }
