@@ -1,0 +1,6 @@
+test/user:
+    entity:
+        abstract: false
+    attributes:
+        name:
+            type: string

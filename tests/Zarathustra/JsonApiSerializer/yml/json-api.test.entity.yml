@@ -1,0 +1,25 @@
+test/entity:
+    entity:
+        abstract: false
+    attributes:
+        stringField:
+            type: string
+        dateField:
+            type: date
+        integerField:
+            type: integer
+        collectionField:
+            type: collection
+        hashField:
+            type: hash
+        floatField:
+            type: float
+        booleanField:
+            type: boolean
+    relationships:
+        manyRelationship:
+            type: many
+            entity: test/person
+        oneRelationship:
+            type: one
+            entity: test/user
