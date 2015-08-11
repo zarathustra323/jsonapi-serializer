@@ -19,5 +19,5 @@
     },
     "suggest": {
         "symfony/yaml": "Required if you'd like load metadata from YAML format."
-    },
+    }
 }
