@@ -1,0 +1,11 @@
+test/extended:
+    entity:
+        abstract: false
+        extends: test/entity
+    attributes:
+        extendedField:
+            type: string
+    relationships:
+        extendedRelationsip:
+            type: one
+            entity: test/user

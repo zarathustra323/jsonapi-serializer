@@ -1,0 +1,11 @@
+test/extended/grandchild:
+    entity:
+        abstract: false
+        extends: test/extended
+    attributes:
+        grandchildFiled:
+            type: integer
+    relationships:
+        grandchildRel:
+            type: many
+            entity: test/person
