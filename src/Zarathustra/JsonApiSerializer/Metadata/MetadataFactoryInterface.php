@@ -13,7 +13,7 @@ interface MetadataFactoryInterface
      * Returns an entity metadata object for the given entity type.
      *
      * @param   string              $type
-     * @return  EntityMetadata|null
+     * @return  EntityMetadata
      */
     public function getMetadataForType($type);
 

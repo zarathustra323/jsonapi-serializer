@@ -114,7 +114,7 @@ class MetadataFactory implements MetadataFactoryInterface
      * @param   string  $type
      * @param   array   $metas
      * @return  EntityMetadata[]
-     * @throws  InvaldArgumentException If the entity type cannot be found.
+     * @throws  InvalidArgumentException If the entity type cannot be found.
      */
     private function getTypeHierarchy($type, array $metas = [])
     {
