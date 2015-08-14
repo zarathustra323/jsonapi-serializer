@@ -13,7 +13,8 @@ interface DriverInterface
      * Loads the EntityMetadata for a type.
      *
      * @param   string  $type
-     * @return  \Zarathustra\JsonApiSerializer\Metadata\EntityMetadata|null
+     * @return  \Zarathustra\JsonApiSerializer\Metadata\EntityMetadata
+     * @throws  \Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException If the type cannot be found.
      */
     public function loadMetadataForType($type);
 
@@ -23,4 +24,15 @@ interface DriverInterface
      * @return  array
      */
     public function getAllTypeNames();
+
+    /**
+     * Gets the type hierarchy (via extension) for an entity type.
+     * Is recursive.
+     *
+     * @param   string  $type
+     * @param   array   $types
+     * @return  array
+     * @throws  \Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException If any types in the tree cannot be found or parsed.
+     */
+    public function getTypeHierarchy($type, array $types = []);
 }

@@ -28,6 +28,13 @@ class EntityMetadata
     public $abstract = false;
 
     /**
+     * The entity type this entity extends.
+     *
+     * @var bool
+     */
+    public $extends;
+
+    /**
      * Uniquely defines the type of entity.
      * The value is used as the "type" field of the JSON API spec's resource identifier object.
      *
@@ -72,6 +79,7 @@ class EntityMetadata
     {
         $this->setType($metadata->type);
         $this->setAbstract($metadata->isAbstract());
+        $this->extends = $metadata->extends;
         $this->mergeAttributes($metadata->getAttributes());
         $this->mergeRelationships($metadata->getRelationships());
         return $this;
@@ -101,7 +109,7 @@ class EntityMetadata
      */
     private function mergeAttributes(array $toAdd)
     {
-        $this->attributes = array_merge($this->attributes(), $toAdd);
+        $this->attributes = array_merge($this->attributes, $toAdd);
         ksort($this->attributes);
         return $this;
     }
@@ -114,7 +122,7 @@ class EntityMetadata
      */
     private function mergeRelationships(array $toAdd)
     {
-        $this->relationships = array_merge($this->relationships(), $toAdd);
+        $this->relationships = array_merge($this->relationships, $toAdd);
         ksort($this->relationships);
         return $this;
     }
@@ -139,6 +147,27 @@ class EntityMetadata
     {
         $this->abstract = (Boolean) $bit;
         return $this;
+    }
+
+    /**
+     * Determines if this is a child entity of another entity.
+     *
+     * @return  bool
+     */
+    public function isChildEntity()
+    {
+        return null !== $this->getParentEntityType();
+    }
+
+    /**
+     * Gets the parent entity type.
+     * For entities that are extended.
+     *
+     * @return  string|null
+     */
+    public function getParentEntityType()
+    {
+        return $this->extends;
     }
 
     /**
