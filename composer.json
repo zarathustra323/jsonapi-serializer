@@ -16,7 +16,7 @@
     },
     "require": {
         "php": ">=5.4",
-        "zarathustra/common": "dev-master"
+        "zarathustra/common": "<=1.0"
     },
     "suggest": {
         "symfony/yaml": "Required if you'd like load metadata from YAML format."
