@@ -19,6 +19,7 @@
         "zarathustra/common": "<=1.0"
     },
     "suggest": {
-        "symfony/yaml": "Required if you'd like load metadata from YAML format."
+        "symfony/yaml": "Required if you'd like load metadata from YAML format.",
+        "ext-igbinary": "Required if you'd like to use the provided igbinary metadata cache serialization."
     }
 }

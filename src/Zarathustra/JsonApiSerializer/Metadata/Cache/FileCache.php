@@ -19,7 +19,14 @@ class FileCache implements CacheInterface
      *
      * @var string
      */
-    private $dir;
+    protected $dir;
+
+    /**
+     * The cache type file prefix.
+     *
+     * @var string
+     */
+    protected $cachePrefix = 'file-cache';
 
     /**
      * Constructor.
@@ -46,6 +53,17 @@ class FileCache implements CacheInterface
         if (!file_exists($file)) {
             return null;
         }
+        return $this->readFile($file);
+    }
+
+    /**
+     * Reads the cache file and returns as an EntityMetadata object.
+     *
+     * @param   string  $file
+     * @return  EntityMetadata
+     */
+    protected function readFile($file)
+    {
         return include $file;
     }
 
@@ -54,9 +72,21 @@ class FileCache implements CacheInterface
      */
     public function putMetadataInCache(EntityMetadata $metadata)
     {
+        $this->writeFile($metadata, '<?php return unserialize('.var_export(serialize($metadata), true).');');
+        return $this;
+    }
+
+    /**
+     * Writes the cache file.
+     *
+     * @param   EntityMetadata  $metadata
+     * @param   string          $contents
+     */
+    protected function writeFile(EntityMetadata $metadata, $contents)
+    {
         $file = $this->getCacheFile($metadata->type);
         $tmpFile = tempnam($this->dir, 'metadata-cache');
-        file_put_contents($tmpFile, '<?php return unserialize('.var_export(serialize($metadata), true).');');
+        file_put_contents($tmpFile, $contents);
         chmod($tmpFile, 0666 & ~umask());
         $this->renameFile($tmpFile, $file);
     }
@@ -81,7 +111,7 @@ class FileCache implements CacheInterface
      */
     private function getCacheFile($type)
     {
-        return $this->dir.'/json-api.file-cache.'.Utility::formatEntityTypeFilename($type).'.php';
+        return $this->dir.'/json-api.'.$this->cachePrefix.'.'.Utility::formatEntityTypeFilename($type).'.php';
     }
 
     /**
