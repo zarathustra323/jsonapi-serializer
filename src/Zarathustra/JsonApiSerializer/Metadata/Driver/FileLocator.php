@@ -2,6 +2,8 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Driver;
 
+use Zarathustra\JsonApiSerializer\Utility;
+
 /**
  * File locator service for locating metadata files for use in creating EntityMetadata instances.
  *
@@ -100,7 +102,7 @@ class FileLocator implements FileLocatorInterface
      */
     private function formatFilename($type)
     {
-        return preg_replace('/[^a-z0-9]/i', '.', strtolower($type));
+        return Utility::formatEntityTypeFilename($type);
     }
 
     /**

@@ -27,6 +27,18 @@ class Utility
     }
 
     /**
+     * Formats an entity type for use in a filename.
+     *
+     * @static
+     * @param   string  $type
+     * @return  string
+     */
+    public static function formatEntityTypeFilename($type)
+    {
+        return preg_replace('/[^a-z0-9]/i', '.', strtolower($type));
+    }
+
+    /**
      * Formats the entity type.
      *
      * @static
