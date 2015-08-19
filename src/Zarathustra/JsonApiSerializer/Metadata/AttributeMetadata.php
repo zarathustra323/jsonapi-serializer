@@ -38,8 +38,8 @@ class AttributeMetadata extends FieldMetadata
      */
     public function setType($type)
     {
-        $this->validateType($type);
         $this->type = strtolower($type);
+        $this->validateType($type);
         return $this;
     }
 
@@ -49,13 +49,11 @@ class AttributeMetadata extends FieldMetadata
      * @todo    Should be derived from the list of available types (as to support custom) not from a static array.
      * @param   string  $type
      * @return  bool
-     * @throws  \InvalidArgumentException
+     * @throws  InvalidArgumentException
      */
     protected function validateType($type)
     {
-        $type = (String) $type;
         $valid = ['array', 'object', 'boolean', 'date', 'float', 'integer', 'string'];
-        $type = strtolower($type);
         if (!in_array($type, $valid)) {
             throw new InvalidArgumentException(sprintf('The relationship type "%s" is not valid. Valid types are "%s"', $type, implode(', ', $valid)));
         }

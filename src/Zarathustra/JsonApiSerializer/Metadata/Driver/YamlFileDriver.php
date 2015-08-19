@@ -2,9 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Driver;
 
-use Zarathustra\JsonApiSerializer\Metadata\EntityMetadata;
-use Zarathustra\JsonApiSerializer\Metadata\AttributeMetadata;
-use Zarathustra\JsonApiSerializer\Metadata\RelationshipMetadata;
+use Zarathustra\JsonApiSerializer\Metadata;
 use Zarathustra\JsonApiSerializer\Exception\RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -29,7 +27,7 @@ class YamlFileDriver extends AbstractFileDriver
     {
         $mapping = $this->getMapping($type, $file);
 
-        $metadata = new EntityMetadata($type);
+        $metadata = new Metadata\EntityMetadata($type);
 
         if (isset($mapping['entity']['abstract']) && true === (Boolean) $mapping['entity']['abstract']) {
             $metadata->setAbstract();
@@ -84,17 +82,32 @@ class YamlFileDriver extends AbstractFileDriver
     /**
      * Sets the entity attribute metadata from the metadata mapping.
      *
-     * @param   EntityMetadata  $metadata
-     * @param   array           $attrMapping
-     * @return  EntityMetadata
+     * @param   Metadata\AttributeInterface $metadata
+     * @param   array                       $attrMapping
+     * @return  Metadata\EntityMetadata
      */
-    protected function setAttributes(EntityMetadata $metadata, array $attrMapping)
+    protected function setAttributes(Metadata\AttributeInterface $metadata, array $attrMapping)
     {
         foreach ($attrMapping as $key => $mapping) {
             if (!is_array($mapping)) {
                 $mapping = ['type' => null];
             }
-            $metadata->addAttribute(new AttributeMetadata($key, $mapping['type']));
+            $mapping['type'] = strtolower($mapping['type']);
+            switch ($mapping['type']) {
+                case 'object':
+                    $childMapping = (isset($mapping['attributes']) && is_array($mapping['attributes'])) ? $mapping['attributes'] : [];
+                    $attribute = new Metadata\ObjectAttributeMetadata($key, $mapping['type']);
+                    $this->setAttributes($attribute, $childMapping);
+                    break;
+                case 'array':
+                    $valuesType = isset($mapping['valuesType']) ? $mapping['valuesType'] : 'string';
+                    $attribute = new Metadata\ArrayAttributeMetadata($key, $mapping['type'], $valuesType);
+                    break;
+                default:
+                    $attribute = new Metadata\AttributeMetadata($key, $mapping['type']);
+                    break;
+            }
+            $metadata->addAttribute($attribute);
         }
         return $metadata;
     }
@@ -102,24 +115,24 @@ class YamlFileDriver extends AbstractFileDriver
     /**
      * Sets the entity relationship metadata from the metadata mapping.
      *
-     * @param   EntityMetadata  $metadata
-     * @param   array           $relMapping
-     * @return  EntityMetadata
+     * @param   Metadata\EntityMetadata $metadata
+     * @param   array                   $relMapping
+     * @return  Metadata\EntityMetadata
      * @throws  RuntimeException If the related entity type was not found.
      */
-    protected function setRelationships(EntityMetadata $metadata, array $relMapping)
+    protected function setRelationships(Metadata\EntityMetadata $metadata, array $relMapping)
     {
         foreach ($relMapping as $key => $mapping) {
             if (!is_array($mapping)) {
                 $mapping = ['type' => null, 'entity' => null];
             }
-            $relatedMeta = $this->loadMetadataForType($mapping['entity']);
+            $relatedMeta = ($metadata->type === $mapping['entity']) ? $metadata : $this->loadMetadataForType($mapping['entity']);
 
             if (null === $relatedMeta) {
                 throw new RuntimeException(sprintf('No YAML mapping file was found for related entity type "%s" as found on relationship field "%s::%s"', $mapping['entity'], $metadata->type, $key));
             }
 
-            $metadata->addRelationship(new RelationshipMetadata($key, $mapping['type'], $relatedMeta));
+            $metadata->addRelationship(new Metadata\RelationshipMetadata($key, $mapping['type'], $relatedMeta));
         }
         return $metadata;
     }

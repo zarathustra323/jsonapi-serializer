@@ -1,0 +1,7 @@
+Post\Comment:
+    entity:
+        extends: Post
+    relationships:
+        parent:
+            type: one
+            entity: Post\Comment

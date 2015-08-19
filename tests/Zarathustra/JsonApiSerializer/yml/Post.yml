@@ -1,0 +1,41 @@
+Post:
+    entity:
+        abstract: true
+    attributes:
+        status:
+            type: integer
+        body:
+            type: string
+        created:
+            type: date
+        ipAddress:
+            type: string
+        reported:
+            type: boolean
+        anonymize:
+            type: boolean
+        displayName:
+            type: string
+        picture:
+            type: string
+        import:
+            type: object
+            attributes:
+                commentId:
+                    type: string
+                edited:
+                    type: boolean
+                status:
+                    type: string
+                flagCount:
+                    type: integer
+                imported:
+                    type: boolean
+                displayName:
+                    type: string
+                uid:
+                    type: string
+    relationships:
+        stream:
+            type: one
+            entity: PostStream

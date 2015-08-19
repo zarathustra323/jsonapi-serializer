@@ -10,7 +10,7 @@ use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
  *
  * @author Jacob Bare <jbare@southcomm.com>
  */
-class EntityMetadata
+class EntityMetadata implements AttributeInterface
 {
     /**
      * The id key name and type.
@@ -194,6 +194,16 @@ class EntityMetadata
     public function getAttributes()
     {
         return $this->attributes;
+    }
+
+    /**
+     * Determines any attribute fields exist on this entity.
+     *
+     * @return  bool
+     */
+    public function hasAttributes()
+    {
+        return !empty($this->attributes);
     }
 
     /**

@@ -40,6 +40,12 @@ abstract class FieldMetadata
         return $this->key;
     }
 
+    /**
+     * Validates that the field key is not reserved.
+     *
+     * @param   string  $key
+     * @throws  InvalidArgumentException
+     */
     protected function validateKey($key)
     {
         $reserved = ['type', 'id'];

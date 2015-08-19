@@ -10,6 +10,7 @@ Test\Entity:
             type: integer
         collectionField:
             type: array
+            valuesType: integer
         hashField:
             type: object
         floatField:
