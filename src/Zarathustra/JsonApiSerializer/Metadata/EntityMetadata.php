@@ -2,7 +2,6 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata;
 
-use Zarathustra\JsonApiSerializer\Utility;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 
 /**
@@ -97,7 +96,7 @@ class EntityMetadata
         if (!is_string($type) || empty($type)) {
             throw new InvalidArgumentException('The entity metadata type must be a non-empty string.');
         }
-        $this->type = Utility::formatEntityType($type);
+        $this->type = $type;
         return $this;
     }
 
@@ -175,9 +174,13 @@ class EntityMetadata
      *
      * @param   AttributeMetadata   $attribute
      * @return  self
+     * @throws  InvalidArgumentException If the attribute key already exists as a relationship.
      */
     public function addAttribute(AttributeMetadata $attribute)
     {
+        if (isset($this->relationships[$attribute->getKey()])) {
+            throw new InvalidArgumentException(sprintf('The attribute key "%s" already exists as a relationship. An attribute cannot have the same key as a relationship.', $attribute->getKey()));
+        }
         $this->attributes[$attribute->getKey()] = $attribute;
         ksort($this->attributes);
         return $this;
@@ -224,9 +227,13 @@ class EntityMetadata
      *
      * @param   RelationshipMetadata   $relationship
      * @return  self
+     * @throws  InvalidArgumentException If the relationship key already exists as an attribute.
      */
     public function addRelationship(RelationshipMetadata $relationship)
     {
+        if (isset($this->attributes[$relationship->getKey()])) {
+            throw new InvalidArgumentException(sprintf('The relationship key "%s" already exists as an attribute. A relationship cannot have the same key as an attribute.', $relationship->getKey()));
+        }
         $this->relationships[$relationship->getKey()] = $relationship;
         ksort($this->relationships);
         return $this;
