@@ -2,7 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Driver;
 
-use Zarathustra\JsonApiSerializer\Utility;
+use Zarathustra\JsonApiSerializer\Metadata\Formatter\EntityFormatter;
 
 /**
  * File locator service for locating metadata files for use in creating EntityMetadata instances.
@@ -12,30 +12,30 @@ use Zarathustra\JsonApiSerializer\Utility;
 class FileLocator implements FileLocatorInterface
 {
     /**
-     * Directories to search in.
+     * Directory to search in.
      *
-     * @var array
+     * @var string
      */
-    private $directories = [];
+    private $dir;
 
     /**
      * Constructor.
      *
-     * @param   string|array   $directories
+     * @param   string   $dir
      */
-    public function __construct($directories)
+    public function __construct($dir)
     {
-        $this->directories = (Array) $directories;
+        $this->dir = $dir;
     }
 
     /**
-     * Gets the directories to search in.
+     * Gets the directory to search in.
      *
      * @return  array
      */
-    public function getDirectories()
+    public function getDirectory()
     {
-        return $this->directories;
+        return $this->dir;
     }
 
     /**
@@ -43,12 +43,9 @@ class FileLocator implements FileLocatorInterface
      */
     public function findFileForType($type, $extension)
     {
-        $type = $this->formatFilename($type);
-        foreach ($this->getDirectories() as $prefix => $dir) {
-            $path = sprintf('%s/%s', $dir, $this->getFilenameForType($type, $extension, $prefix));
-            if (file_exists($path)) {
-                return $path;
-            }
+        $path = sprintf('%s/%s', $this->getDirectory(), $this->getFilenameForType($type, $extension));
+        if (file_exists($path)) {
+            return $path;
         }
         return null;
     }
@@ -61,58 +58,41 @@ class FileLocator implements FileLocatorInterface
         $types = [];
         $extension = sprintf('.%s', $extension);
 
-        foreach ($this->getDirectories() as $prefix => $dir) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($dir),
-                \RecursiveIteratorIterator::LEAVES_ONLY
-            );
-            $prefix = sprintf('%s.', $this->formatPrefix($prefix));
-            foreach ($iterator as $file) {
-                if (($fileName = $file->getBasename($extension)) == $file->getBasename()) {
-                    continue;
-                }
-                if (0 !== strpos($fileName, $prefix)) {
-                    continue;
-                }
-                $type = str_replace([$prefix, $extension], '', $fileName);
-                $types[] = str_replace('.', '/', $type);
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->getDirectory()),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        foreach ($iterator as $file) {
+            if (($filename = $file->getBasename($extension)) == $file->getBasename()) {
+                continue;
             }
+            $types[] = $this->getTypeForFilename($filename, $extension);
         }
         return $types;
     }
 
     /**
+     * Gets the type name based on filename.
+     *
+     * @param   string  $filename
+     * @param   string  $extension
+     * @return  string
+     */
+    public function getTypeForFilename($filename, $extension)
+    {
+        $type = str_replace($extension, '', $filename);
+        return str_replace('_', '\\', $filename);
+    }
+
+    /**
      * Gets the filename for a metadata entity type.
      *
-     * @param   string      $type
-     * @param   string      $extension
-     * @param   string|null $prefix
-     * @return  string
-     */
-    public function getFilenameForType($type, $extension, $prefix = null)
-    {
-        return sprintf('%s.%s.%s', $this->formatPrefix($prefix), $type, $extension);
-    }
-
-    /**
-     * Formats the file name.
-     *
      * @param   string  $type
+     * @param   string  $extension
      * @return  string
      */
-    private function formatFilename($type)
+    public function getFilenameForType($type, $extension)
     {
-        return Utility::formatEntityTypeFilename($type);
-    }
-
-    /**
-     * Formats the file name prefix.
-     *
-     * @param   string  $prefix
-     * @return  string
-     */
-    private function formatPrefix($prefix)
-    {
-        return is_string($prefix) && !empty($prefix) ? sprintf('%s', $this->formatFilename($prefix)) : 'json-api';
+        return sprintf('%s.%s', EntityFormatter::getFilename($type), $extension);
     }
 }

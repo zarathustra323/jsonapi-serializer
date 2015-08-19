@@ -1,4 +1,4 @@
-test/entity:
+Test\Entity:
     entity:
         abstract: false
     attributes:
@@ -9,9 +9,9 @@ test/entity:
         integerField:
             type: integer
         collectionField:
-            type: collection
+            type: array
         hashField:
-            type: hash
+            type: object
         floatField:
             type: float
         booleanField:
@@ -19,7 +19,7 @@ test/entity:
     relationships:
         manyRelationship:
             type: many
-            entity: test/person
+            entity: Person
         oneRelationship:
             type: one
-            entity: test/user
+            entity: Test\User

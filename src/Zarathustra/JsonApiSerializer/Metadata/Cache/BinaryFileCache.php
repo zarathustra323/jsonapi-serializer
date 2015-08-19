@@ -19,7 +19,7 @@ class BinaryFileCache extends FileCache
      *
      * @var string
      */
-    protected $cachePrefix = 'binary-cache';
+    protected $cachePrefix = 'BinaryCache';
 
     /**
      * {@inheritDoc}

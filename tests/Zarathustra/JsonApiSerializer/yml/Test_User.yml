@@ -1,4 +1,4 @@
-test/person:
+Test\User:
     entity:
         abstract: false
     attributes:

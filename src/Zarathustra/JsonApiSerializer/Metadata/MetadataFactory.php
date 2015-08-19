@@ -2,6 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata;
 
+use Zarathustra\JsonApiSerializer\Metadata\Formatter\EntityFormatter;
 use Zarathustra\JsonApiSerializer\Metadata\Driver\DriverInterface;
 use Zarathustra\JsonApiSerializer\Metadata\Cache\CacheInterface;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
@@ -40,7 +41,7 @@ class MetadataFactory implements MetadataFactoryInterface
     /**
      * Constructor.
      *
-     * @param   DriverInterface     $driver
+     * @param   DriverInterface $driver
      */
     public function __construct(DriverInterface $driver)
     {
@@ -64,6 +65,7 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     public function getMetadataForType($type)
     {
+        $type = EntityFormatter::getInternalType($type);
         if (null !== $metadata = $this->doLoadMetadata($type)) {
             // Found in memory or from cache implementation
             return $metadata;
@@ -105,30 +107,6 @@ class MetadataFactory implements MetadataFactoryInterface
         } else {
             $metadata->merge($toAdd);
         }
-    }
-
-    /**
-     * Gets the entity hierarchy tree for an entity type.
-     * Is recursive.
-     *
-     * @param   string  $type
-     * @param   array   $metas
-     * @return  EntityMetadata[]
-     * @throws  InvalidArgumentException If the entity type cannot be found.
-     */
-    private function getTypeHierarchy($type, array $metas = [])
-    {
-        $metadata = $this->driver->loadMetadataForType($type);
-
-        if (null === $metadata) {
-            throw new InvalidArgumentException(sprintf('The entity type "%s" does not have any metadata mapping.', $type));
-        }
-
-        $metas[] = $metadata;
-        if (true === $metadata->isChildEntity()) {
-            return $this->getHierarchy($metadata->getParentEntityType(), $metas);
-        }
-        return array_reverse($metas);
     }
 
     /**

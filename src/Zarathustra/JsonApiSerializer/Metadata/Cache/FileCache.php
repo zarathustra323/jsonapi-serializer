@@ -3,9 +3,9 @@
 namespace Zarathustra\JsonApiSerializer\Metadata\Cache;
 
 use Zarathustra\JsonApiSerializer\Metadata\EntityMetadata;
+use Zarathustra\JsonApiSerializer\Metadata\Formatter\EntityFormatter;
 use Zarathustra\JsonApiSerializer\Exception\RuntimeException;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
-use Zarathustra\JsonApiSerializer\Utility;
 
 /**
  * Caches and retrieves EntityMetadata objects from the file system.
@@ -26,7 +26,7 @@ class FileCache implements CacheInterface
      *
      * @var string
      */
-    protected $cachePrefix = 'file-cache';
+    protected $cachePrefix = 'FileCache';
 
     /**
      * Constructor.
@@ -111,7 +111,7 @@ class FileCache implements CacheInterface
      */
     private function getCacheFile($type)
     {
-        return $this->dir.'/json-api.'.$this->cachePrefix.'.'.Utility::formatEntityTypeFilename($type).'.php';
+        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.EntityFormatter::getFilename($type).'.php';
     }
 
     /**
