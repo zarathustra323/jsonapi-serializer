@@ -32,6 +32,13 @@ class MetadataFactory implements MetadataFactoryInterface
     private $cache;
 
     /**
+     * Flags whether metadata caching is enabled.
+     *
+     * @var bool
+     */
+    private $cacheEnabled = true;
+
+    /**
      * In-memory loaded Metadata instances.
      *
      * @var EntityMetadata[]
@@ -67,6 +74,38 @@ class MetadataFactory implements MetadataFactoryInterface
     {
         $this->cache = $cache;
         return $this;
+    }
+
+    /**
+     * Gets the cache instance.
+     *
+     * @return  CacheInterface|null
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    /**
+     * Enables or disables the cache.
+     *
+     * @param   bool    $bit
+     * @return  self
+     */
+    public function enableCache($bit = true)
+    {
+        $this->cacheEnabled = (Boolean) $bit;
+        return $this;
+    }
+
+    /**
+     * Determines if cache is enbled.
+     *
+     * @return  bool
+     */
+    public function hasCache()
+    {
+        return null !== $this->getCache() && true === $this->cacheEnabled;
     }
 
     /**
@@ -155,10 +194,21 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     private function doPutMetadata(EntityMetadata $metadata)
     {
-        if (null !== $this->cache) {
+        if (true === $this->hasCache()) {
             $this->cache->putMetadataInCache($metadata);
         }
         $this->setToMemory($metadata);
+        return $this;
+    }
+
+    /**
+     * Clears any loaded metadata objects from memory.
+     *
+     * @return  self
+     */
+    public function clearMemory()
+    {
+        $this->loaded = [];
         return $this;
     }
 
@@ -194,7 +244,7 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     private function getFromCache($type)
     {
-        if (null === $this->cache) {
+        if (false === $this->hasCache()) {
             return null;
         }
         return $this->cache->loadMetadataFromCache($type);
