@@ -36,6 +36,13 @@ class FileCache implements CacheInterface
     protected $entityFormatter;
 
     /**
+     * The file extension.
+     *
+     * @var string
+     */
+    protected $extension = 'php';
+
+    /**
      * Constructor.
      *
      * @param   string          $dir
@@ -120,7 +127,7 @@ class FileCache implements CacheInterface
      */
     private function getCacheFile($type)
     {
-        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.$this->entityFormatter->getFilename($type).'.php';
+        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.$this->entityFormatter->getFilename($type).'.'.$this->extension;
     }
 
     /**

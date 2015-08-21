@@ -22,6 +22,13 @@ class BinaryFileCache extends FileCache
     protected $cachePrefix = 'BinaryCache';
 
     /**
+     * The file extension.
+     *
+     * @var string
+     */
+    protected $extension = 'bin';
+
+    /**
      * {@inheritDoc}
      */
     protected function readFile($file)
