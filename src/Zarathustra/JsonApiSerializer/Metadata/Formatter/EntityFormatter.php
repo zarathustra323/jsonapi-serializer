@@ -4,7 +4,7 @@ namespace Zarathustra\JsonApiSerializer\Metadata\Formatter;
 
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 use Zarathustra\JsonApiSerializer\Metadata\Configuration;
-use Zarathustra\Common\StringUtils;
+use Zarathustra\Common\Inflector;
 
 /**
  * Utility class for handling entity type formatting and naming.
@@ -21,38 +21,44 @@ class EntityFormatter
     private $config;
 
     /**
+     * The inflector for converting string formats
+     *
+     * @var Inflector
+     */
+    private $inflector;
+
+    /**
      * Constructor.
      *
      * @param   Configuration|null  $config
      */
-    public function __construct(Configuration $config = null)
+    public function __construct(Configuration $config = null, Inflector $inflector = null)
     {
         $this->config = $config ?: new Configuration();
+        $this->inflector = $inflector ?: new Inflector();
     }
 
     /**
      * Formats an entity type for internal usage.
      * Should be used for file names and cache keys and any other internal usage.
      *
-     * @static
      * @param   string  $type
      * @return  string
      */
-    public static function getInternalType($type)
+    public function getInternalType($type)
     {
-        return self::formatType($type, 'studlycaps', '\\');
+        return $this->formatType($type, 'studlycaps', '\\');
     }
 
     /**
      * Gets the filename for an entity type.
      *
-     * @static
      * @param   $type
      * @return  string
      */
-    public static function getFilename($type)
+    public function getFilename($type)
     {
-        return str_replace('\\', '_', self::getInternalType($type));
+        return str_replace('\\', '_', $this->getInternalType($type));
     }
 
     /**
@@ -63,42 +69,40 @@ class EntityFormatter
      * @param   string|null $namespaceDelimiter
      * @return  string
      */
-    protected static function formatType($type, $format, $namespaceDelimiter = null)
+    public function formatType($type, $format, $namespaceDelimiter = null)
     {
-        $formatter = self::getTypeFormatter($format);
         if (null === $namespaceDelimiter) {
-            return $formatter($type);
+            return $this->doFormatType($type, $format);
         }
         $parts = explode($namespaceDelimiter, $type);
         foreach ($parts as &$part) {
-            $part = $formatter($part);
+            $part = $this->doFormatType($part, $format);
         }
         return implode($namespaceDelimiter, $parts);
     }
 
     /**
-     * Gets the type formatter function.
+     * Formats the type.
      *
-     * @param   string|null $format
-     * @return  \Closure
-     * @throws  InvalidArgumentException
+     * @param   string  $type
+     * @param   string  $format
+     * @return  string
+     * @throws  InvalidArgumentException If the format cannot be handled.
      */
-    public static function getTypeFormatter($format)
+    protected function doFormatType($type, $format)
     {
-        Configuration::validateStringFormat($format);
-        return function($type) use ($format) {
-            switch ($format) {
-                case 'underscore':
-                    return StringUtils::underscore($type);
-                case 'camelcase':
-                    return StringUtils::camelize($type);
-                case 'studlycaps':
-                    return StringUtils::studlify($type);
-                case 'dash':
-                    return StringUtils::dasherize($type);
-                default:
-                    throw new InvalidArgumentException(sprintf('Unable to load an entity type formatter for type "%s"', $format));
-            }
-        };
+        $this->config->validateStringFormat($format);
+        switch ($format) {
+            case 'underscore':
+                return $this->inflector->underscore($type);
+            case 'camelcase':
+                return $this->inflector->camelize($type);
+            case 'studlycaps':
+                return $this->inflector->studlify($type);
+            case 'dash':
+                return $this->inflector->dasherize($type);
+            default:
+                throw new InvalidArgumentException(sprintf('Unable to load an entity type formatter for type "%s"', $format));
+        }
     }
 }

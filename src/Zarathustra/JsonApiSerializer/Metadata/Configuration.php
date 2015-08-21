@@ -61,8 +61,8 @@ class Configuration
      */
     public function setNamespaceDelimiter($delim)
     {
-        self::validateNamespaceDelimiter($delim);
-        self::validateNameFormat($delim, $this->getEntityNameFormat());
+        $this->validateNamespaceDelimiter($delim);
+        $this->validateNameFormat($delim, $this->getEntityNameFormat());
         $this->namespaceDelimiter = $delim;
         return $this;
     }
@@ -85,8 +85,8 @@ class Configuration
      */
     public function setEntityNameFormat($format)
     {
-        self::validateStringFormat($format);
-        self::validateNameFormat($this->getNamespaceDelimiter(), $format);
+        $this->validateStringFormat($format);
+        $this->validateNameFormat($this->getNamespaceDelimiter(), $format);
         $this->entityNameFormat = $format;
         return $this;
     }
@@ -117,10 +117,10 @@ class Configuration
     /**
      * Gets the valid entity namespace delimiters.
      *
-     * @static
+     * @todo    Currently the '/' character (U+002F) is considered invalid. Should likely deprecate as a NS char.
      * @return  array
      */
-    public static function getValidNamespaceDelimiters()
+    public function getValidNamespaceDelimiters()
     {
         return ['/', '_', '-'];
     }
@@ -128,10 +128,9 @@ class Configuration
     /**
      * Gets the valid entity string formats.
      *
-     * @static
      * @return  array
      */
-    public static function getValidStringFormats()
+    public function getValidStringFormats()
     {
         return ['dash', 'camelcase', 'studlycaps', 'underscore'];
     }
@@ -139,14 +138,13 @@ class Configuration
     /**
      * Validates the namespace delimiter.
      *
-     * @static
      * @param   string  $delimiter
      * @return  bool
      * @throws  InvalidArgumentException
      */
-    public static function validateNamespaceDelimiter($delimiter)
+    public function validateNamespaceDelimiter($delimiter)
     {
-        $valid = self::getValidNamespaceDelimiters();
+        $valid = $this->getValidNamespaceDelimiters();
         if (!in_array($delimiter, $valid)) {
             throw new InvalidArgumentException(sprintf('The namespace delimiter "%s" is invalid. Valid delimiters are "%s"', $delimiter, implode(', ', $valid)));
         }
@@ -156,13 +154,12 @@ class Configuration
     /**
      * Validates the namespace delimiter compared to the selected name format.
      *
-     * @static
      * @param   string  $delimiter
      * @param   string  $nameFormat
      * @return  bool
      * @throws  InvalidArgumentException
      */
-    protected static function validateNameFormat($delimiter, $nameFormat)
+    protected function validateNameFormat($delimiter, $nameFormat)
     {
         if (('_' === $delimiter && 'underscore' === $nameFormat) || ('-' === $delimiter && 'dash' === $nameFormat)) {
             throw new InvalidArgumentException(sprintf('You cannot use the namespace delimiter "%s" when using the entity name format of "%s"', $delimiter, $nameFormat));
@@ -173,14 +170,13 @@ class Configuration
     /**
      * Validates the the string format for entity and field key names.
      *
-     * @static
      * @param   string  $format
      * @return  bool
      * @throws  InvalidArgumentException
      */
-    public static function validateStringFormat($format)
+    public function validateStringFormat($format)
     {
-        $valid = self::getValidStringFormats();
+        $valid = $this->getValidStringFormats();
         if (!in_array($format, $valid)) {
             throw new InvalidArgumentException(sprintf('The string format "%s" is invalid. Valid formats are "%s"', $format, implode(', ', $valid)));
         }

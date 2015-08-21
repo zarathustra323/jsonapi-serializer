@@ -19,13 +19,22 @@ class FileLocator implements FileLocatorInterface
     private $dir;
 
     /**
+     * The entity formatter utility.
+     *
+     * @var EntityFormatter
+     */
+    private $entityFormatter;
+
+    /**
      * Constructor.
      *
-     * @param   string   $dir
+     * @param   string          $dir
+     * @param   EntityFormatter $entityFormatter
      */
-    public function __construct($dir)
+    public function __construct($dir, EntityFormatter $entityFormatter)
     {
         $this->dir = $dir;
+        $this->entityFormatter = $entityFormatter;
     }
 
     /**
@@ -93,6 +102,6 @@ class FileLocator implements FileLocatorInterface
      */
     public function getFilenameForType($type, $extension)
     {
-        return sprintf('%s.%s', EntityFormatter::getFilename($type), $extension);
+        return sprintf('%s.%s', $this->entityFormatter->getFilename($type), $extension);
     }
 }

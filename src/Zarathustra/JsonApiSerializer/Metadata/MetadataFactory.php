@@ -39,13 +39,22 @@ class MetadataFactory implements MetadataFactoryInterface
     private $loaded;
 
     /**
+     * The entity formatter utility.
+     *
+     * @var EntityFormatter
+     */
+    private $entityFormatter;
+
+    /**
      * Constructor.
      *
      * @param   DriverInterface $driver
+     * @param   EntityFormatter $entityFormatter
      */
-    public function __construct(DriverInterface $driver)
+    public function __construct(DriverInterface $driver, EntityFormatter $entityFormatter)
     {
         $this->driver = $driver;
+        $this->entityFormatter = $entityFormatter;
     }
 
     /**
@@ -65,7 +74,7 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     public function getMetadataForType($type)
     {
-        $type = EntityFormatter::getInternalType($type);
+        $type = $this->entityFormatter->getInternalType($type);
         if (null !== $metadata = $this->doLoadMetadata($type)) {
             // Found in memory or from cache implementation
             return $metadata;

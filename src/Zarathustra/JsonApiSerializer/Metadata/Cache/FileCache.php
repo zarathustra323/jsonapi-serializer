@@ -29,11 +29,19 @@ class FileCache implements CacheInterface
     protected $cachePrefix = 'FileCache';
 
     /**
+     * The entity formatter utility.
+     *
+     * @var EntityFormatter
+     */
+    protected $entityFormatter;
+
+    /**
      * Constructor.
      *
-     * @param   string  $dir
+     * @param   string          $dir
+     * @param   EntityFormatter $entityFormatter
      */
-    public function __construct($dir)
+    public function __construct($dir, EntityFormatter $entityFormatter)
     {
         if (!is_dir($dir)) {
             throw new InvalidArgumentException(sprintf('The cache directory "%s" does not exist.', $dir));
@@ -42,6 +50,7 @@ class FileCache implements CacheInterface
             throw new InvalidArgumentException(sprintf('The cache directory "%s" is not writable.', $dir));
         }
         $this->dir = rtrim($dir, '\\/');
+        $this->entityFormatter = $entityFormatter;
     }
 
     /**
@@ -111,7 +120,7 @@ class FileCache implements CacheInterface
      */
     private function getCacheFile($type)
     {
-        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.EntityFormatter::getFilename($type).'.php';
+        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.$this->entityFormatter->getFilename($type).'.php';
     }
 
     /**
