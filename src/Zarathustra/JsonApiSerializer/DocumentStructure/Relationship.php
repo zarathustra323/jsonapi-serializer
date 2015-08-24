@@ -2,7 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\DocumentStructure;
 
-abstract class Relationship
+class Relationship
 {
     use Traits\MetaEnabled;
 
@@ -16,9 +16,9 @@ abstract class Relationship
     /**
      * The relationship data.
      *
-     * @var Resource
+     * @var Resource[]
      */
-    protected $data;
+    protected $data = [];
 
     /**
      * Constructor.
@@ -26,9 +26,12 @@ abstract class Relationship
      * @param   string  $key
      * @param   mixed   $value
      */
-    public function __construct($key)
+    public function __construct($key, Resource $data = null)
     {
         $this->key = $key;
+        if (null !== $data) {
+            $this->pushData($data);
+        }
     }
 
     /**
@@ -47,12 +50,16 @@ abstract class Relationship
      * @param   Resource
      * @return  self
      */
-    abstract public function applyData(Resource $data);
+    public function pushData(Resource $data)
+    {
+        $this->data[] = $data;
+        return $this;
+    }
 
     /**
      * Gets the relationship data.
      *
-     * @return  Resource|Resource[]
+     * @return  Resource[]
      */
     public function getData()
     {
