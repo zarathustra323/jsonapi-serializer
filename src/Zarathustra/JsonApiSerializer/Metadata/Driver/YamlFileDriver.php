@@ -107,6 +107,9 @@ class YamlFileDriver extends AbstractFileDriver
                     $attribute = new Metadata\AttributeMetadata($key, $mapping['type']);
                     break;
             }
+            if (isset($mapping['serialize'])) {
+                $attribute->serialize = (Boolean) $mapping['serialize'];
+            }
             $metadata->addAttribute($attribute);
         }
         return $metadata;
@@ -132,7 +135,11 @@ class YamlFileDriver extends AbstractFileDriver
                 throw new RuntimeException(sprintf('No YAML mapping file was found for related entity type "%s" as found on relationship field "%s::%s"', $mapping['entity'], $metadata->type, $key));
             }
 
-            $metadata->addRelationship(new Metadata\RelationshipMetadata($key, $mapping['type'], $relatedMeta));
+            $relationship = new Metadata\RelationshipMetadata($key, $mapping['type'], $relatedMeta);
+            if (isset($mapping['serialize'])) {
+                $relationship->serialize = (Boolean) $mapping['serialize'];
+            }
+            $metadata->addRelationship($relationship);
         }
         return $metadata;
     }

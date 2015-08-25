@@ -20,6 +20,13 @@ abstract class FieldMetadata
     public $key;
 
     /**
+     * Whether or not this field should be serialized.
+     *
+     * @var bool
+     */
+    public $serialize = true;
+
+    /**
      * Constructor.
      *
      * @param   string  $key
