@@ -48,6 +48,28 @@ abstract class FieldMetadata
     }
 
     /**
+     * Whether this field should be included in serialization.
+     *
+     * @return  bool
+     */
+    public function shouldSerialize()
+    {
+        return (Boolean) $this->serialize;
+    }
+
+    /**
+     * Sets whether this field should be serialized.
+     *
+     * @param   bool    $bit
+     * @return  self
+     */
+    public function setSerialize($bit = true)
+    {
+        $this->serialize = (Boolean) $bit;
+        return $this;
+    }
+
+    /**
      * Validates that the field key is not reserved.
      *
      * @param   string  $key
