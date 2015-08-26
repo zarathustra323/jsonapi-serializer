@@ -42,7 +42,7 @@ class Resource
      */
     public function __construct($id, $type)
     {
-        $this->id = $id;
+        $this->id = (String) $id;
         $this->type = $type;
     }
 
