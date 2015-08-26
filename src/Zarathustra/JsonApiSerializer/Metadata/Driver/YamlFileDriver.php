@@ -29,12 +29,16 @@ class YamlFileDriver extends AbstractFileDriver
 
         $metadata = new Metadata\EntityMetadata($type);
 
-        if (isset($mapping['entity']['abstract']) && true === (Boolean) $mapping['entity']['abstract']) {
-            $metadata->setAbstract();
+        if (isset($mapping['entity']['abstract'])) {
+            $metadata->setAbstract($mapping['entity']['abstract']);
         }
 
         if (isset($mapping['entity']['extends'])) {
             $metadata->extends = $mapping['entity']['extends'];
+        }
+
+        if (isset($mapping['entity']['polymorphic'])) {
+            $metadata->setPolymorphic($mapping['entity']['polymorphic']);
         }
 
         $this->setAttributes($metadata, $mapping['attributes']);
@@ -92,7 +96,7 @@ class YamlFileDriver extends AbstractFileDriver
             if (!is_array($mapping)) {
                 $mapping = ['type' => null];
             }
-            $mapping['type'] = strtolower($mapping['type']);
+            $this->validateDataType($mapping['type']);
             switch ($mapping['type']) {
                 case 'object':
                     $childMapping = (isset($mapping['attributes']) && is_array($mapping['attributes'])) ? $mapping['attributes'] : [];
@@ -101,6 +105,7 @@ class YamlFileDriver extends AbstractFileDriver
                     break;
                 case 'array':
                     $valuesType = isset($mapping['valuesType']) ? $mapping['valuesType'] : 'string';
+                    $this->validateDataType($valuesType);
                     $attribute = new Metadata\ArrayAttributeMetadata($key, $mapping['type'], $valuesType);
                     break;
                 default:
@@ -108,7 +113,7 @@ class YamlFileDriver extends AbstractFileDriver
                     break;
             }
             if (isset($mapping['serialize'])) {
-                $attribute->serialize = (Boolean) $mapping['serialize'];
+                $attribute->setSerialize($mapping['serialize']);
             }
             $metadata->addAttribute($attribute);
         }
@@ -137,7 +142,7 @@ class YamlFileDriver extends AbstractFileDriver
 
             $relationship = new Metadata\RelationshipMetadata($key, $mapping['type'], $relatedMeta);
             if (isset($mapping['serialize'])) {
-                $relationship->serialize = (Boolean) $mapping['serialize'];
+                $relationship->setSerialize($mapping['serialize']);
             }
             $metadata->addRelationship($relationship);
         }

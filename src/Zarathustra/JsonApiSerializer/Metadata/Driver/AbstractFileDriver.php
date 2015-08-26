@@ -2,6 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Driver;
 
+use Zarathustra\JsonApiSerializer\DataTypes\TypeFactory;
 use Zarathustra\JsonApiSerializer\Metadata\EntityMetadata;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 
@@ -27,13 +28,22 @@ abstract class AbstractFileDriver implements DriverInterface
     private $arrayCache = [];
 
     /**
+     * The attribute data type factory.
+     * Is used to ensure data types are registered.
+     *
+     * @var TypeFactory
+     */
+    private $typeFactory;
+
+    /**
      * Constructor.
      *
      * @param   FileLocatorInterface    $fileLocator
      */
-    public function __construct(FileLocatorInterface $fileLocator)
+    public function __construct(FileLocatorInterface $fileLocator, TypeFactory $typeFactory)
     {
         $this->fileLocator = $fileLocator;
+        $this->typeFactory = $typeFactory;
     }
 
     /**
@@ -46,6 +56,21 @@ abstract class AbstractFileDriver implements DriverInterface
         }
         $path = $this->getFilePathForType($type);
         return $this->arrayCache[$type] = $this->loadMetadataFromFile($type, $path);
+    }
+
+    /**
+     * Validates that the given attribute data type exists.
+     *
+     * @param   string  $dataType
+     * @return  bool
+     * @throws  InvalidArgumentException
+     */
+    protected function validateDataType($dataType)
+    {
+        if (false === $this->typeFactory->hasType($dataType)) {
+            throw new InvalidArgumentException(sprintf('The data type "%s" does not exist.', $dataType));
+        }
+        return true;
     }
 
     /**

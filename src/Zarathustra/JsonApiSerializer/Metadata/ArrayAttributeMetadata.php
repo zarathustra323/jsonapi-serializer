@@ -40,26 +40,7 @@ class ArrayAttributeMetadata extends AttributeMetadata
      */
     public function setValuesType($valuesType)
     {
-        $valuesType = strtolower($valuesType);
-        $this->validateValuesType($valuesType);
         $this->valuesType = $valuesType;
         return $this;
-    }
-
-    /**
-     * Validates the array values type.
-     *
-     * @todo    Should be derived from the list of available types (as to support custom) not from a static array.
-     * @param   string  $type
-     * @return  bool
-     * @throws  InvalidArgumentException
-     */
-    protected function validateValuesType($type)
-    {
-        $valid = ['mixed', 'object', 'boolean', 'date', 'float', 'integer', 'string'];
-        if (!in_array($type, $valid)) {
-            throw new InvalidArgumentException(sprintf('The array values type "%s" is not valid. Valid types are "%s"', $type, implode(', ', $valid)));
-        }
-        return true;
     }
 }
