@@ -27,6 +27,13 @@ class EntityMetadata implements AttributeInterface
     public $abstract = false;
 
     /**
+     * Whether this class is considered polymorphic.
+     *
+     * @var bool
+     */
+    public $polymorphic = false;
+
+    /**
      * The entity type this entity extends.
      *
      * @var bool
@@ -145,6 +152,28 @@ class EntityMetadata implements AttributeInterface
     public function setAbstract($bit = true)
     {
         $this->abstract = (Boolean) $bit;
+        return $this;
+    }
+
+    /**
+     * Whether this metadata represents a polymorphic class.
+     *
+     * @return  bool
+     */
+    public function isPolymorphic()
+    {
+        return (Boolean) $this->polymorphic;
+    }
+
+    /**
+     * Sets this metadata as representing a polymorphic class.
+     *
+     * @param   bool    $bit
+     * @return  self
+     */
+    public function setPolymorphic($bit = true)
+    {
+        $this->polymorphic = (Boolean) $bit;
         return $this;
     }
 
