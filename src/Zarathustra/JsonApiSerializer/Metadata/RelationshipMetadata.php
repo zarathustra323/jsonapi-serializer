@@ -54,6 +54,36 @@ class RelationshipMetadata extends FieldMetadata
     }
 
     /**
+     * Gets the relationship type.
+     *
+     * @return  string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * Determines if this is a one (single) relationship.
+     *
+     * @return  bool
+     */
+    public function isOne()
+    {
+        return 'one' === $this->getType();
+    }
+
+    /**
+     * Determines if this is a many relationship.
+     *
+     * @return bool
+     */
+    public function isMany()
+    {
+        return 'many' === $this->getType();
+    }
+
+    /**
      * Sets the relationship type: one or many.
      *
      * @param   string  $type

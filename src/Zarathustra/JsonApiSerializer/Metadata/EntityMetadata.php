@@ -85,6 +85,7 @@ class EntityMetadata implements AttributeInterface
     {
         $this->setType($metadata->type);
         $this->setAbstract($metadata->isAbstract());
+        $this->setPolymorphic($metadata->isPolymorphic());
         $this->extends = $metadata->extends;
         $this->mergeAttributes($metadata->getAttributes());
         $this->mergeRelationships($metadata->getRelationships());

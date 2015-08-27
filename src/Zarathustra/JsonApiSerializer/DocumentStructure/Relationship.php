@@ -16,22 +16,58 @@ class Relationship
     /**
      * The relationship data.
      *
-     * @var Resource[]
+     * @var RelatedDataInterface
      */
-    protected $data = [];
+    protected $data;
 
     /**
      * Constructor.
      *
-     * @param   string  $key
-     * @param   mixed   $value
+     * @param   string                      $key
+     * @param   RelatedDataInterface|null   $data
      */
-    public function __construct($key, Resource $data = null)
+    public function __construct($key, RelatedDataInterface $data = null)
     {
         $this->key = $key;
         if (null !== $data) {
             $this->pushData($data);
         }
+    }
+
+    /**
+     * Determines if any resource data has been applied.
+     *
+     * @return  bool
+     */
+    public function hasData()
+    {
+        return null !== $this->getData();
+    }
+
+    /**
+     * Determines if this relationship is a collection of resources.
+     *
+     * @return  bool
+     */
+    public function isCollection()
+    {
+        if (false === $this->hasData()) {
+            return false;
+        }
+        return $this->getData() instanceof ResourceCollection;
+    }
+
+    /**
+     * Determines if this relationship is a single resource.
+     *
+     * @return  bool
+     */
+    public function isResource()
+    {
+        if (false === $this->hasData()) {
+            return false;
+        }
+        return $this->getData() instanceof Resource;
     }
 
     /**
@@ -47,19 +83,19 @@ class Relationship
     /**
      * Applys the relationship data.
      *
-     * @param   Resource
+     * @param   RelatedDataInterface
      * @return  self
      */
-    public function pushData(Resource $data)
+    public function pushData(RelatedDataInterface $data)
     {
-        $this->data[] = $data;
+        $this->data = $data;
         return $this;
     }
 
     /**
      * Gets the relationship data.
      *
-     * @return  Resource[]
+     * @return  RelatedDataInterface
      */
     public function getData()
     {

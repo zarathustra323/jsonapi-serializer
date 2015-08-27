@@ -2,7 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\DocumentStructure;
 
-class Resource
+class Resource implements RelatedDataInterface
 {
     use Traits\MetaEnabled;
 

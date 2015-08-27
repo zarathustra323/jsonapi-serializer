@@ -11,7 +11,7 @@ use \ArrayAccess;
  *
  * @author Jacob Bare <jbare@southcomm.com>
  */
-class ResourceCollection implements Iterator, ArrayAccess
+class ResourceCollection implements Iterator, ArrayAccess, RelatedDataInterface
 {
     use Traits\MetaEnabled;
 
@@ -55,6 +55,20 @@ class ResourceCollection implements Iterator, ArrayAccess
     public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * Gets a unique list of all entity types assigned to this collection.
+     *
+     * @return  array
+     */
+    public function getResourceTypes()
+    {
+        $types = [];
+        foreach ($this as $resource) {
+            $types[] = $resource->getType();
+        }
+        return array_unique($types);
     }
 
     /**
