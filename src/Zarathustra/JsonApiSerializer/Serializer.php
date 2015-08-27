@@ -50,6 +50,13 @@ class Serializer
     private $debug;
 
     /**
+     * Denotes the current object depth of the serializer.
+     *
+     * @var int
+     */
+    private $depth = 0;
+
+    /**
      * Constructor.
      *
      * @todo    Configuration needs to be injected to handle things such as global date format, API host/endpoints, resource type conversion, etc.
@@ -78,23 +85,35 @@ class Serializer
      * @param   Resource|ResourceCollection     $data
      * @param   bool                            $encode
      * @return  string|array
-     * @throws  RuntimeException If the provided data is not supported.
      */
     public function serialize($data, $encode = true)
     {
         $encode = (Boolean) $encode;
         try {
-            if ($data instanceof ResourceCollection) {
-                $serialized['data'] = $this->serializeCollection($data);
-            } elseif ($data instanceof Resource) {
-                $serialized['data'] = $this->serializeResource($data);
-            } else {
-                throw new RuntimeException('Unable to serialize the provided data.');
-            }
+            $serialized = $this->doSerialize($data);
         } catch (\Exception $e) {
             $serialized = $this->handleException($e);
         }
         return $encode ? $this->encode($serialized) : $serialized;
+    }
+
+    /**
+     * Performs the serialization using the provided document data.
+     *
+     * @param   Resource|ResourceCollection     $data
+     * @return  array
+     * @throws  RuntimeException If the provided data is not supported.
+     */
+    protected function doSerialize($data)
+    {
+        if ($data instanceof ResourceCollection) {
+            $serialized['data'] = $this->serializeCollection($data);
+        } elseif ($data instanceof Resource) {
+            $serialized['data'] = $this->serializeResource($data);
+        } else {
+            throw new RuntimeException('Unable to serialize the provided data.');
+        }
+        return $serialized;
     }
 
     /**
@@ -112,7 +131,7 @@ class Serializer
             'id'    => $resource->getId(),
             'type'  => $resource->getType(),
         ];
-        if (true === $isRelationship) {
+        if ($this->depth > 0) {
             return $serialized;
         }
 
@@ -201,25 +220,48 @@ class Serializer
      */
     protected function serializeRelationship(Relationship $relationship, RelationshipMetadata $relMeta)
     {
-        if (true === $relMeta->isOne()) {
-            // One relationship
-            if (false === $relationship->hasData()) {
-                return null;
-            }
-            if (false === $relationship->isResource()) {
-                throw new RuntimeException('Cannot serialize a relationship type of "one" without any resource data');
-            }
-            return ['data' => $this->serializeResource($relationship->getData(), true)];
+        if (false === $relationship->hasData()) {
+            // No relationship data found, use default value.
+            return $relMeta->getDefaultEmptyValue();
         }
 
-        // Many relationship
-        if (false === $relationship->hasData()) {
-            return [];
+        if (true === $relMeta->isOne() && false === $relationship->isResource()) {
+            // Invalid. Cannot not serialize a relationship one without a resource object.
+            throw new RuntimeException('Cannot serialize a relationship type of "one" without any resource data');
         }
-        if (false === $relationship->isCollection()) {
+        if (true === $relMeta->isMany() && false === $relationship->isCollection()) {
+            // Invalid. Cannot not serialize a relationship many without a collection object.
             throw new RuntimeException('Cannot serialize a relationship type of "many" without any resource collection data');
         }
-        return ['data' => $this->serializeCollection($relationship->getData(), true)];
+
+        $this->increaseDepth();
+        $serialized = $this->doSerialize($relationship->getData());
+        $this->decreaseDepth();
+        return $serialized;
+    }
+
+    /**
+     * Increases the serializer depth.
+     *
+     * @return  self
+     */
+    protected function increaseDepth()
+    {
+        $this->depth++;
+        return $this;
+    }
+
+    /**
+     * Decreases the serializer depth.
+     *
+     * @return  self
+     */
+    protected function decreaseDepth()
+    {
+        if ($this->depth > 0) {
+            $this->depth--;
+        }
+        return $this;
     }
 
     /**

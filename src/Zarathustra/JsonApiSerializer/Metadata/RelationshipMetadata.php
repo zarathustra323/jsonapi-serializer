@@ -84,6 +84,19 @@ class RelationshipMetadata extends FieldMetadata
     }
 
     /**
+     * Gets the default value to use when no relationship data is present.
+     *
+     * @return  null|array
+     */
+    public function getDefaultEmptyValue()
+    {
+        if ($this->isOne) {
+            return null;
+        }
+        return [];
+    }
+
+    /**
      * Sets the relationship type: one or many.
      *
      * @param   string  $type
