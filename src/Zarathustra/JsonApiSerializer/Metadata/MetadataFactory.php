@@ -65,6 +65,16 @@ class MetadataFactory implements MetadataFactoryInterface
     }
 
     /**
+     * Gets the entity formatter.
+     *
+     * @return  EntityFormatter
+     */
+    public function getEntityFormatter()
+    {
+        return $this->entityFormatter;
+    }
+
+    /**
      * Sets the cache instance to use for reading/writing Metadata objects.
      *
      * @param   CacheInterface  $cache
@@ -113,7 +123,7 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     public function getMetadataForType($type)
     {
-        $type = $this->entityFormatter->getInternalType($type);
+        $type = $this->getEntityFormatter()->getInternalType($type);
         if (null !== $metadata = $this->doLoadMetadata($type)) {
             // Found in memory or from cache implementation
             return $metadata;

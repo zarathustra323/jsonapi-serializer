@@ -34,6 +34,13 @@ class Serializer
     private $typeFactory;
 
     /**
+     * The serializer configuration.
+     *
+     * @var Configuration
+     */
+    private $config;
+
+    /**
      * Whether debug is enabled.
      * Currently allows Exceptions to be thrown if enabled.
      * Otherwise they are caught and return as a JSON API errors object.
@@ -49,12 +56,14 @@ class Serializer
      *
      * @param   EntityManager   $em
      * @param   TypeFactory     $typeFactory
+     * @param   Configuration   $config
      * @param   bool            $debug
      */
-    public function __construct(EntityManager $em, TypeFactory $typeFactory, $debug = false)
+    public function __construct(EntityManager $em, TypeFactory $typeFactory, Configuration $config, $debug = false)
     {
         $this->em = $em;
         $this->typeFactory = $typeFactory;
+        $this->config = $config;
         $this->debug = (Boolean) $debug;
     }
 

@@ -2,8 +2,8 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Formatter;
 
+use Zarathustra\JsonApiSerializer\Validator;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
-use Zarathustra\JsonApiSerializer\Metadata\Configuration;
 use Zarathustra\Common\Inflector;
 
 /**
@@ -14,11 +14,11 @@ use Zarathustra\Common\Inflector;
 class EntityFormatter
 {
     /**
-     * The metadata configuration.
+     * Validator component for ensuring formats are correct.
      *
-     * @var Configuration
+     * @var Validator
      */
-    private $config;
+    private $validator;
 
     /**
      * The inflector for converting string formats
@@ -30,11 +30,12 @@ class EntityFormatter
     /**
      * Constructor.
      *
-     * @param   Configuration|null  $config
+     * @param   Validator|null  $validator
+     * @param   Inflector|null  $inflector
      */
-    public function __construct(Configuration $config = null, Inflector $inflector = null)
+    public function __construct(Validator $validator = null, Inflector $inflector = null)
     {
-        $this->config = $config ?: new Configuration();
+        $this->validator = $validator ?: new Validator();
         $this->inflector = $inflector ?: new Inflector();
     }
 
@@ -72,37 +73,49 @@ class EntityFormatter
     public function formatType($type, $format, $namespaceDelimiter = null)
     {
         if (null === $namespaceDelimiter) {
-            return $this->doFormatType($type, $format);
+            return $this->doFormat($type, $format);
         }
         $parts = explode($namespaceDelimiter, $type);
         foreach ($parts as &$part) {
-            $part = $this->doFormatType($part, $format);
+            $part = $this->doFormat($part, $format);
         }
         return implode($namespaceDelimiter, $parts);
     }
 
     /**
-     * Formats the type.
+     * Formats an entity field (attribute/relationship) key.
      *
-     * @param   string  $type
+     * @param   string  $key
+     * @param   string  $format
+     * @return  string
+     */
+    public function formatField($key, $format)
+    {
+        return $this->doFormat($key, $format);
+    }
+
+    /**
+     * Formats a string.
+     *
+     * @param   string  $string
      * @param   string  $format
      * @return  string
      * @throws  InvalidArgumentException If the format cannot be handled.
      */
-    protected function doFormatType($type, $format)
+    protected function doFormat($string, $format)
     {
-        $this->config->validateStringFormat($format);
+        $this->validator->validateStringFormat($format);
         switch ($format) {
             case 'underscore':
-                return $this->inflector->underscore($type);
+                return $this->inflector->underscore($string);
             case 'camelcase':
-                return $this->inflector->camelize($type);
+                return $this->inflector->camelize($string);
             case 'studlycaps':
-                return $this->inflector->studlify($type);
+                return $this->inflector->studlify($string);
             case 'dash':
-                return $this->inflector->dasherize($type);
+                return $this->inflector->dasherize($string);
             default:
-                throw new InvalidArgumentException(sprintf('Unable to load an entity type formatter for type "%s"', $format));
+                throw new InvalidArgumentException(sprintf('Unable to load a string formatter for format type "%s"', $format));
         }
     }
 }

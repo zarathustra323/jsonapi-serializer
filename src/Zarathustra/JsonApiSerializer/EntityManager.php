@@ -86,6 +86,16 @@ class EntityManager
     }
 
     /**
+     * Gets the entity formatter.
+     *
+     * @return  \Zarathustra\JsonApiSerializer\Metadata\EntityFormatter
+     */
+    public function getEntityFormatter()
+    {
+        return $this->getMetadataFactory()->getEntityFormatter();
+    }
+
+    /**
      * Gets the entity metadata for a resource type.
      *
      * @param   string  $type
