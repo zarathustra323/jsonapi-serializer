@@ -128,8 +128,8 @@ class Serializer
     protected function serializeResource(Resource $resource, $isRelationship = false)
     {
         $serialized = [
+            'type'  => $this->formatEntityType($resource->getType()),
             'id'    => $resource->getId(),
-            'type'  => $resource->getType(),
         ];
         if ($this->depth > 0) {
             return $serialized;
@@ -144,8 +144,10 @@ class Serializer
             if (false === $attrMeta->shouldSerialize()) {
                 continue;
             }
-            $serialized['attributes'][$key] = $this->serializeAttribute($attribute, $attrMeta);
+            $formattedKey = $this->formatEntityFieldKey($key);
+            $serialized['attributes'][$formattedKey] = $this->serializeAttribute($attribute, $attrMeta);
         }
+        $serialized['links'] = ['self' => $this->buildLink($resource->getType(), $resource->getId())];
 
         foreach ($resource->getRelationships() as $key => $relationship) {
             if (false === $metadata->hasRelationship($key)) {
@@ -155,7 +157,8 @@ class Serializer
             if (false === $relMeta->shouldSerialize()) {
                 continue;
             }
-            $serialized['relationships'][$key] = $this->serializeRelationship($relationship, $relMeta);
+            $formattedKey = $this->formatEntityFieldKey($key);
+            $serialized['relationships'][$formattedKey] = $this->serializeRelationship($relationship, $relMeta);
         }
         return $serialized;
     }
@@ -190,6 +193,7 @@ class Serializer
     protected function serializeAttribute(Attribute $attribute, AttributeMetadata $attrMeta)
     {
         if ('object' === $attrMeta->type && $attrMeta->hasAttributes()) {
+            // If object attributes (sub-attributes) are defined, attempt to convert them to the proper data types.
             $serialized = [];
             $values = get_object_vars($this->typeFactory->convertToPHPValue('object', $attribute->getValue()));
             foreach ($values as $key => $value) {
@@ -199,7 +203,7 @@ class Serializer
                 if (false === $attrMeta->hasAttribute($key)) {
                     continue;
                 }
-                $serialized[$key] = $this->serializeAttribute(new Attribute($key, $value), $attrMeta->getAttribute($key));
+                $serialized[$this->formatEntityFieldKey($key)] = $this->serializeAttribute(new Attribute($key, $value), $attrMeta->getAttribute($key));
             }
             return $serialized;
         }
@@ -241,6 +245,26 @@ class Serializer
     }
 
     /**
+     * Builds a resource URL for use in the links object.
+     *
+     * @param   string  $type
+     * @param   string  $id
+     * @return  string
+     */
+    protected function buildLink($type, $id)
+    {
+        $link = $this->config->isSecure() ? 'https://' : 'http://';
+        $link .= $this->config->getApiHost();
+
+        if (null !== $rootEndpoint = $this->config->getRootEndpoint()) {
+            $rootEndpoint = trim($rootEndpoint, '/');
+            $link .= sprintf('/%s', $rootEndpoint);
+        }
+        $link .= sprintf('/%s', $this->formatEntityType($type));
+        return $link;
+    }
+
+    /**
      * Increases the serializer depth.
      *
      * @return  self
@@ -262,6 +286,31 @@ class Serializer
             $this->depth--;
         }
         return $this;
+    }
+
+    /**
+     * Formats an entity type name to the external format, based on config.
+     *
+     * @param   string  $type
+     * @return  string
+     */
+    protected function formatEntityType($type)
+    {
+        $format = $this->config->getEntityNameFormat();
+        $delim  = $this->config->getNamespaceDelimiter();
+        return $this->em->getEntityFormatter()->getExternalType($type, $format, $delim);
+    }
+
+    /**
+     * Formats an entity type name to the external format, based on config.
+     *
+     * @param   string  $type
+     * @return  string
+     */
+    protected function formatEntityFieldKey($key)
+    {
+        $format = $this->config->getFieldKeyFormat();
+        return $this->em->getEntityFormatter()->formatField($key, $format);
     }
 
     /**
