@@ -270,7 +270,7 @@ class Serializer
         }
         $link .= sprintf('/%s/%s', $this->formatEntityType($type), $id);
 
-        if (false === $isRelatedLink) {
+        if (false === $isRelatedLink && null !== $relKey) {
             $link .= '/relationships';
         }
         if (null !== $relKey) {
