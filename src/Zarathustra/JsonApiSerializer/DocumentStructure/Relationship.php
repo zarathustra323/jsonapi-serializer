@@ -21,6 +21,13 @@ class Relationship
     protected $data;
 
     /**
+     * The owning resource of the relationship.
+     *
+     * @var Resource
+     */
+    protected $owner;
+
+    /**
      * Constructor.
      *
      * @param   string                      $key
@@ -32,6 +39,28 @@ class Relationship
         if (null !== $data) {
             $this->pushData($data);
         }
+    }
+
+    /**
+     * Gets the owning resource of this relationship.
+     *
+     * @return  Resource
+     */
+    public function getOwner()
+    {
+        return $this->owner;
+    }
+
+    /**
+     * Sets the owning resource of this relationship.
+     *
+     * @param   Resource    $owner
+     * @return  self
+     */
+    public function setOwner(Resource $owner)
+    {
+        $this->owner = $owner;
+        return $this;
     }
 
     /**

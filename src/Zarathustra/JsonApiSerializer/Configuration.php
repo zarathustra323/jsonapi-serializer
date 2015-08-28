@@ -35,13 +35,6 @@ class Configuration
     private $rootEndpoint;
 
     /**
-     * Date format for handling date serialization.
-     *
-     * @var string
-     */
-    private $dateFormat;
-
-    /**
      * The external entity namespace delimiter.
      *
      * @var string
@@ -79,8 +72,7 @@ class Configuration
         $this->validator = $validator ?: new Validator();
         $this->setNamespaceDelimiter('/');
         $this->setEntityNameFormat('dash');
-        $this->setFieldKeyFormat('camelcase');
-        $this->setDateFormat(DateTime::RFC2822);
+        $this->setFieldKeyFormat('dash');
     }
 
     /**
@@ -146,28 +138,6 @@ class Configuration
     public function setRootEndpoint($rootEndpoint)
     {
         $this->rootEndpoint = $rootEndpoint;
-        return $this;
-    }
-
-    /**
-     * Gets the date format for date serialization.
-     *
-     * @return  string
-     */
-    public function getDateFormat()
-    {
-        return $this->dateFormat;
-    }
-
-    /**
-     * Sets the date format for date serialization.
-     *
-     * @param   string  $format
-     * @return  self
-     */
-    public function setDateFormat($format)
-    {
-        $this->dateFormat = $format;
         return $this;
     }
 

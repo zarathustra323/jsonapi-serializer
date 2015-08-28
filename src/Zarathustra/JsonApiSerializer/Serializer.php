@@ -240,6 +240,12 @@ class Serializer
 
         $this->increaseDepth();
         $serialized = $this->doSerialize($relationship->getData());
+
+        $owner = $relationship->getOwner();
+        $serialized['links'] = [
+            'self'      => $this->buildLink($owner->getType(), $owner->getId(), $relationship->getKey()),
+            'related'   => $this->buildLink($owner->getType(), $owner->getId(), $relationship->getKey(), true),
+        ];
         $this->decreaseDepth();
         return $serialized;
     }
@@ -247,11 +253,13 @@ class Serializer
     /**
      * Builds a resource URL for use in the links object.
      *
-     * @param   string  $type
-     * @param   string  $id
+     * @param   string          $type
+     * @param   string          $id
+     * @param   string|null     $relKey
+     * @param   bool            $isRelatedLink
      * @return  string
      */
-    protected function buildLink($type, $id)
+    protected function buildLink($type, $id, $relKey = null, $isRelatedLink = false)
     {
         $link = $this->config->isSecure() ? 'https://' : 'http://';
         $link .= $this->config->getApiHost();
@@ -260,7 +268,14 @@ class Serializer
             $rootEndpoint = trim($rootEndpoint, '/');
             $link .= sprintf('/%s', $rootEndpoint);
         }
-        $link .= sprintf('/%s', $this->formatEntityType($type));
+        $link .= sprintf('/%s/%s', $this->formatEntityType($type), $id);
+
+        if (false === $isRelatedLink) {
+            $link .= '/relationships';
+        }
+        if (null !== $relKey) {
+            $link .= sprintf('/%s', $this->formatEntityFieldKey($relKey));
+        }
         return $link;
     }
 

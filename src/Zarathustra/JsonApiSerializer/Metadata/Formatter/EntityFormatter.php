@@ -13,6 +13,7 @@ use Zarathustra\Common\Inflector;
  */
 class EntityFormatter
 {
+    const INTERNAL_NS_DELIM = '\\';
     /**
      * Validator component for ensuring formats are correct.
      *
@@ -48,7 +49,13 @@ class EntityFormatter
      */
     public function getInternalType($type)
     {
-        return $this->formatType($type, 'studlycaps', '\\');
+        return $this->formatType($type, 'studlycaps', self::INTERNAL_NS_DELIM);
+    }
+
+    public function getExternalType($type, $format, $delim)
+    {
+        $type = $this->formatType($type, $format, self::INTERNAL_NS_DELIM);
+        return str_replace(self::INTERNAL_NS_DELIM, $delim, $type);
     }
 
     /**
@@ -59,7 +66,7 @@ class EntityFormatter
      */
     public function getFilename($type)
     {
-        return str_replace('\\', '_', $this->getInternalType($type));
+        return str_replace(self::INTERNAL_NS_DELIM, '_', $this->getInternalType($type));
     }
 
     /**

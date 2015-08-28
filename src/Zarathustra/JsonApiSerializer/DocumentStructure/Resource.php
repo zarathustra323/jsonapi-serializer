@@ -132,6 +132,7 @@ class Resource implements RelatedDataInterface
      */
     public function addRelationship(Relationship $relationship)
     {
+        $relationship->setOwner($this);
         $this->relationships[$relationship->getKey()] = $relationship;
         return $this;
     }
