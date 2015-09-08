@@ -130,17 +130,17 @@ class YamlFileDriver extends AbstractFileDriver
      */
     protected function setRelationships(Metadata\EntityMetadata $metadata, array $relMapping)
     {
+        $allTypes = $this->getAllTypeNames();
         foreach ($relMapping as $key => $mapping) {
             if (!is_array($mapping)) {
                 $mapping = ['type' => null, 'entity' => null];
             }
-            $relatedMeta = ($metadata->type === $mapping['entity']) ? $metadata : $this->loadMetadataForType($mapping['entity']);
 
-            if (null === $relatedMeta) {
+            if (!in_array($mapping['entity'], $allTypes)) {
                 throw new RuntimeException(sprintf('No YAML mapping file was found for related entity type "%s" as found on relationship field "%s::%s"', $mapping['entity'], $metadata->type, $key));
             }
 
-            $relationship = new Metadata\RelationshipMetadata($key, $mapping['type'], $relatedMeta);
+            $relationship = new Metadata\RelationshipMetadata($key, $mapping['type'], $mapping['entity']);
             if (isset($mapping['serialize'])) {
                 $relationship->setSerialize($mapping['serialize']);
             }

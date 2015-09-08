@@ -28,6 +28,13 @@ abstract class AbstractFileDriver implements DriverInterface
     private $arrayCache = [];
 
     /**
+     * Array cache of all entity types.
+     *
+     * @var array
+     */
+    private $allEntityTypes;
+
+    /**
      * Validator component for ensuring formats are correct.
      *
      * @var Validator
@@ -78,7 +85,10 @@ abstract class AbstractFileDriver implements DriverInterface
      */
     public function getAllTypeNames()
     {
-        return $this->fileLocator->findAllTypes($this->getExtension());
+        if (null === $this->allEntityTypes) {
+            $this->allEntityTypes = $this->fileLocator->findAllTypes($this->getExtension());
+        }
+        return $this->allEntityTypes;
     }
 
     /**

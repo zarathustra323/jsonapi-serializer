@@ -368,7 +368,7 @@ class Serializer
         foreach ($collection->getResourceTypes() as $resourceType) {
             if (true === $meta->isPolymorphic() && false === $this->em->isDescendantOf($resourceType, $type)) {
                 throw new RuntimeException(sprintf('This resource collection is polymorphic and only descendents of "%s" are supported. Resource "%s" was present in the collection.', $resourceType, $type));
-            } elseif ($type !== $resourceType) {
+            } elseif (false === $meta->isPolymorphic() && $type !== $resourceType) {
                 throw new RuntimeException(sprintf('This resource collection only supports resources of type "%s" - resource type "%s" was provided', $type, $resourceType));
             }
         }

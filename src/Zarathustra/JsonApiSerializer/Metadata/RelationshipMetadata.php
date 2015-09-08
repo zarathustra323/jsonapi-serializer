@@ -11,11 +11,11 @@ namespace Zarathustra\JsonApiSerializer\Metadata;
 class RelationshipMetadata extends FieldMetadata
 {
     /**
-     * The entity this field is related to.
+     * The entity type this is related to.
      *
-     * @var EntityMetadata
+     * @var string
      */
-    public $entity;
+    public $entityType;
 
     /**
      * The relationship type: one or many
@@ -36,21 +36,21 @@ class RelationshipMetadata extends FieldMetadata
      *
      * @param   string  $type   The relationship type.
      */
-    public function __construct($key, $type, EntityMetadata $entity)
+    public function __construct($key, $type, $entityType)
     {
         parent::__construct($key);
         $this->setType($type);
-        $this->entity = $entity;
+        $this->entityType = $entityType;
     }
 
     /**
-     * Gets the EntityMetadata that this field is related to.
+     * Gets the entity type that this field is related to.
      *
-     * @return  EntityMetadata
+     * @return  string
      */
-    public function getEntity()
+    public function getEntityType()
     {
-        return $this->entity;
+        return $this->entityType;
     }
 
     /**
