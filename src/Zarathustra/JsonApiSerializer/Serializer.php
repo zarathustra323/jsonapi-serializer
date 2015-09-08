@@ -57,6 +57,13 @@ class Serializer
     private $depth = 0;
 
     /**
+     * A stack of resources objects to include.
+     *
+     * @var Resource[]
+     */
+    private $toInclude = [];
+
+    /**
      * Constructor.
      *
      * @todo    Configuration needs to be injected to handle things such as global date format, API host/endpoints, resource type conversion, etc.
@@ -113,6 +120,23 @@ class Serializer
         } else {
             throw new RuntimeException('Unable to serialize the provided data.');
         }
+        return $this->serializeIncluded($serialized);
+    }
+
+    /**
+     * Serializes any included resources.
+     *
+     * @param   array   $serialized
+     * @return  array
+     */
+    protected function serializeIncluded(array $serialized)
+    {
+        if (0 === $this->depth && !empty($this->toInclude)) {
+            foreach ($this->toInclude as $resource) {
+                $serialized['included'][] = $this->serializeResource($resource);
+            }
+            $this->toInclude = [];
+        }
         return $serialized;
     }
 
@@ -131,6 +155,7 @@ class Serializer
             'id'    => $resource->getId(),
         ];
         if ($this->depth > 0) {
+            $this->includeResoure($resource);
             return $serialized;
         }
 
@@ -208,8 +233,6 @@ class Serializer
     /**
      * Serializes a relationship value
      *
-     * @todo    Need support for related links.
-     * @todo    Need support for included data.
      * @todo    Need support for meta.
      *
      * @param   Relationship            $relationship
@@ -278,6 +301,20 @@ class Serializer
             $link .= sprintf('/%s', $externalRelKey);
         }
         return $link;
+    }
+
+    /**
+     * Includes a resource for serialization with compound documents.
+     *
+     * @param   Resource    $resource
+     * @return  self
+     */
+    protected function includeResoure(Resource $resource)
+    {
+        if ($resource->isCompleteObject()) {
+            $this->toInclude[$resource->getCompositeKey()] = $resource;
+        }
+        return $this;
     }
 
     /**

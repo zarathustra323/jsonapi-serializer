@@ -47,6 +47,41 @@ class Resource implements RelatedDataInterface
     }
 
     /**
+     * Gets the unique, composite key of this resource.
+     * Combines the type with the id.
+     *
+     * @return  string
+     */
+    public function getCompositeKey()
+    {
+        return sprintf('%s.%s', $this->getType(), $this->getId());
+    }
+
+    /**
+     * Determines whether this resource is an identifier object only.
+     * In other words, only id and type are set - no attribute or relationship data is available.
+     * Is used for including data in a compound document.
+     *
+     * @return  bool
+     */
+    public function isIdentifierObject()
+    {
+        return empty($this->attributes) && empty($this->relationships);
+    }
+
+    /**
+     * Determines whether this resource is complete.
+     * In other words, id, type and attribute and/or relationship data is available.
+     * Is used for including data in a compound document.
+     *
+     * @return  bool
+     */
+    public function isCompleteObject()
+    {
+        return false === $this->isIdentifierObject();
+    }
+
+    /**
      * Gets the resource id.
      *
      * @return  string
