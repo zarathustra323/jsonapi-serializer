@@ -89,8 +89,8 @@ class FileLocator implements FileLocatorInterface
      */
     public function getTypeForFilename($filename, $extension)
     {
-        $type = str_replace($extension, '', $filename);
-        return str_replace('_', '\\', $filename);
+        $baseName = str_replace($extension, '', $filename);
+        return $this->entityFormatter->getTypeFromFileBaseName($baseName);
     }
 
     /**
@@ -102,6 +102,6 @@ class FileLocator implements FileLocatorInterface
      */
     public function getFilenameForType($type, $extension)
     {
-        return sprintf('%s.%s', $this->entityFormatter->getFilename($type), $extension);
+        return sprintf('%s.%s', $this->entityFormatter->getFileBaseName($type), $extension);
     }
 }

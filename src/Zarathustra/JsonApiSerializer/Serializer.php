@@ -119,23 +119,21 @@ class Serializer
     /**
      * Serializes a single document resource object.
      *
-     * @todo    The 'isRelationship' argument should probaby be converted into a 'depth' check.
-     *
      * @param   Resource    $resource
-     * @param   bool        $isRelationship     Determines if this is serializing a top-level resource, or a related resource.
      * @return  array
      */
-    protected function serializeResource(Resource $resource, $isRelationship = false)
+    protected function serializeResource(Resource $resource)
     {
+        $metadata = $this->getMetadataFor($resource->getType());
+
         $serialized = [
-            'type'  => $this->formatEntityType($resource->getType()),
+            'type'  => $metadata->externalType,
             'id'    => $resource->getId(),
         ];
         if ($this->depth > 0) {
             return $serialized;
         }
 
-        $metadata = $this->getMetadataFor($resource->getType());
         foreach ($resource->getAttributes() as $key => $attribute) {
             if (false === $metadata->hasAttribute($key)) {
                 continue;
@@ -144,10 +142,10 @@ class Serializer
             if (false === $attrMeta->shouldSerialize()) {
                 continue;
             }
-            $formattedKey = $this->formatEntityFieldKey($key);
+            $formattedKey = $attrMeta->externalKey;
             $serialized['attributes'][$formattedKey] = $this->serializeAttribute($attribute, $attrMeta);
         }
-        $serialized['links'] = ['self' => $this->buildLink($resource->getType(), $resource->getId())];
+        $serialized['links'] = ['self' => $this->buildLink($metadata->externalType, $resource->getId())];
 
         foreach ($resource->getRelationships() as $key => $relationship) {
             if (false === $metadata->hasRelationship($key)) {
@@ -157,7 +155,7 @@ class Serializer
             if (false === $relMeta->shouldSerialize()) {
                 continue;
             }
-            $formattedKey = $this->formatEntityFieldKey($key);
+            $formattedKey = $relMeta->externalKey;
             $serialized['relationships'][$formattedKey] = $this->serializeRelationship($relationship, $relMeta);
         }
         return $serialized;
@@ -166,19 +164,16 @@ class Serializer
     /**
      * Serializes a collection of document resources.
      *
-     * @todo    The 'isRelationship' argument should probaby be converted into a 'depth' check.
-     *
      * @param   ResourceCollection  $collection
-     * @param   bool                $isRelationship     Determines if this is serializing a top-level resource, or a related resource.
      * @return  array
      */
-    protected function serializeCollection(ResourceCollection $collection, $isRelationship = false)
+    protected function serializeCollection(ResourceCollection $collection)
     {
         $this->validateCollection($collection);
 
         $serialized = [];
         foreach ($collection as $resource) {
-            $serialized[] = $this->serializeResource($resource, $isRelationship);
+            $serialized[] = $this->serializeResource($resource);
         }
         return $serialized;
     }
@@ -203,7 +198,7 @@ class Serializer
                 if (false === $attrMeta->hasAttribute($key)) {
                     continue;
                 }
-                $serialized[$this->formatEntityFieldKey($key)] = $this->serializeAttribute(new Attribute($key, $value), $attrMeta->getAttribute($key));
+                $serialized[$attrMeta->externalKey] = $this->serializeAttribute(new Attribute($key, $value), $attrMeta->getAttribute($key));
             }
             return $serialized;
         }
@@ -214,7 +209,7 @@ class Serializer
      * Serializes a relationship value
      *
      * @todo    Need support for related links.
-     * @todo    Need support for inclided data.
+     * @todo    Need support for included data.
      * @todo    Need support for meta.
      *
      * @param   Relationship            $relationship
@@ -242,9 +237,11 @@ class Serializer
         $serialized = $this->doSerialize($relationship->getData());
 
         $owner = $relationship->getOwner();
+        $ownerMeta = $this->getMetadataFor($owner->getType());
+
         $serialized['links'] = [
-            'self'      => $this->buildLink($owner->getType(), $owner->getId(), $relationship->getKey()),
-            'related'   => $this->buildLink($owner->getType(), $owner->getId(), $relationship->getKey(), true),
+            'self'      => $this->buildLink($ownerMeta->externalType, $owner->getId(), $relMeta->externalKey),
+            'related'   => $this->buildLink($ownerMeta->externalType, $owner->getId(), $relMeta->externalKey, true),
         ];
         $this->decreaseDepth();
         return $serialized;
@@ -253,13 +250,13 @@ class Serializer
     /**
      * Builds a resource URL for use in the links object.
      *
-     * @param   string          $type
+     * @param   string          $externalType
      * @param   string          $id
-     * @param   string|null     $relKey
+     * @param   string|null     $externalRelKey
      * @param   bool            $isRelatedLink
      * @return  string
      */
-    protected function buildLink($type, $id, $relKey = null, $isRelatedLink = false)
+    protected function buildLink($externalType, $id, $externalRelKey = null, $isRelatedLink = false)
     {
         $link = $this->config->isSecure() ? 'https://' : 'http://';
         $link .= $this->config->getApiHost();
@@ -268,13 +265,17 @@ class Serializer
             $rootEndpoint = trim($rootEndpoint, '/');
             $link .= sprintf('/%s', $rootEndpoint);
         }
-        $link .= sprintf('/%s/%s', $this->formatEntityType($type), $id);
 
-        if (false === $isRelatedLink && null !== $relKey) {
-            $link .= '/relationships';
+        if (true === $this->config->useNamespacesAsResources()) {
+            $externalType = str_replace($this->config->getNamespaceDelimiter(), '/', $externalType);
         }
-        if (null !== $relKey) {
-            $link .= sprintf('/%s', $this->formatEntityFieldKey($relKey));
+        $link .= sprintf('/%s/%s', $externalType, $id);
+
+        if (null !== $externalRelKey) {
+            if (false === $isRelatedLink) {
+                $link .= '/relationships';
+            }
+            $link .= sprintf('/%s', $externalRelKey);
         }
         return $link;
     }
@@ -301,31 +302,6 @@ class Serializer
             $this->depth--;
         }
         return $this;
-    }
-
-    /**
-     * Formats an entity type name to the external format, based on config.
-     *
-     * @param   string  $type
-     * @return  string
-     */
-    protected function formatEntityType($type)
-    {
-        $format = $this->config->getEntityNameFormat();
-        $delim  = $this->config->getNamespaceDelimiter();
-        return $this->em->getEntityFormatter()->getExternalType($type, $format, $delim);
-    }
-
-    /**
-     * Formats an entity type name to the external format, based on config.
-     *
-     * @param   string  $type
-     * @return  string
-     */
-    protected function formatEntityFieldKey($key)
-    {
-        $format = $this->config->getFieldKeyFormat();
-        return $this->em->getEntityFormatter()->formatField($key, $format);
     }
 
     /**

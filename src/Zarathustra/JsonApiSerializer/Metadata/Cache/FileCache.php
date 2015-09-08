@@ -127,7 +127,7 @@ class FileCache implements CacheInterface
      */
     private function getCacheFile($type)
     {
-        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.$this->entityFormatter->getFilename($type).'.'.$this->extension;
+        return $this->dir.'/JsonApi.'.$this->cachePrefix.'.'.$this->entityFormatter->getFileBaseName($type).'.'.$this->extension;
     }
 
     /**

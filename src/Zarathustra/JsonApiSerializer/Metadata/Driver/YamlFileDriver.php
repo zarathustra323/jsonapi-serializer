@@ -96,7 +96,7 @@ class YamlFileDriver extends AbstractFileDriver
             if (!is_array($mapping)) {
                 $mapping = ['type' => null];
             }
-            $this->validateDataType($mapping['type']);
+            $this->validator->validateDataType($mapping['type']);
             switch ($mapping['type']) {
                 case 'object':
                     $childMapping = (isset($mapping['attributes']) && is_array($mapping['attributes'])) ? $mapping['attributes'] : [];
@@ -105,7 +105,7 @@ class YamlFileDriver extends AbstractFileDriver
                     break;
                 case 'array':
                     $valuesType = isset($mapping['valuesType']) ? $mapping['valuesType'] : 'string';
-                    $this->validateDataType($valuesType);
+                    $this->validator->validateDataType($valuesType);
                     $attribute = new Metadata\ArrayAttributeMetadata($key, $mapping['type'], $valuesType);
                     break;
                 default:

@@ -2,7 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\Metadata\Formatter;
 
-use Zarathustra\JsonApiSerializer\Validator;
+use Zarathustra\JsonApiSerializer\Configuration;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 use Zarathustra\Common\Inflector;
 
@@ -13,14 +13,6 @@ use Zarathustra\Common\Inflector;
  */
 class EntityFormatter
 {
-    const INTERNAL_NS_DELIM = '\\';
-    /**
-     * Validator component for ensuring formats are correct.
-     *
-     * @var Validator
-     */
-    private $validator;
-
     /**
      * The inflector for converting string formats
      *
@@ -29,15 +21,19 @@ class EntityFormatter
     private $inflector;
 
     /**
+     * @var Configuration
+     */
+    private $config;
+
+    /**
      * Constructor.
      *
-     * @param   Validator|null  $validator
-     * @param   Inflector|null  $inflector
+     * @param   Configuration   $config
      */
-    public function __construct(Validator $validator = null, Inflector $inflector = null)
+    public function __construct(Configuration $config)
     {
-        $this->validator = $validator ?: new Validator();
-        $this->inflector = $inflector ?: new Inflector();
+        $this->config = $config;
+        $this->inflector = new Inflector();
     }
 
     /**
@@ -47,26 +43,55 @@ class EntityFormatter
      * @param   string  $type
      * @return  string
      */
-    public function getInternalType($type)
+    public function formatInternalEntityType($type)
     {
-        return $this->formatType($type, 'studlycaps', self::INTERNAL_NS_DELIM);
+        return $this->formatType($type, 'studlycaps', Configuration::INTERNAL_NS_DELIM);
+    }
+
+    /**
+     * Formats an entity type name to the external format, based on config.
+     *
+     * @param   string  $type
+     * @return  string
+     */
+    public function formatExternalEntityType($type)
+    {
+        $format = $this->config->getEntityNameFormat();
+        $delim  = $this->config->getNamespaceDelimiter();
+
+        $type = $this->formatType($type, $format, Configuration::INTERNAL_NS_DELIM);
+        $type = str_replace(Configuration::INTERNAL_NS_DELIM, $delim, $type);
+
+        $this->config->getValidator()->validateMemberName($type);
+        return $type;
     }
 
     public function getExternalType($type, $format, $delim)
     {
-        $type = $this->formatType($type, $format, self::INTERNAL_NS_DELIM);
-        return str_replace(self::INTERNAL_NS_DELIM, $delim, $type);
+        $type = $this->formatType($type, $format, Configuration::INTERNAL_NS_DELIM);
+        return str_replace(Configuration::INTERNAL_NS_DELIM, $delim, $type);
     }
 
     /**
-     * Gets the filename for an entity type.
+     * Gets the file base name for an entity type.
      *
-     * @param   $type
+     * @param   string  $type
      * @return  string
      */
-    public function getFilename($type)
+    public function getFileBaseName($type)
     {
-        return str_replace(self::INTERNAL_NS_DELIM, '_', $this->getInternalType($type));
+        return str_replace(Configuration::INTERNAL_NS_DELIM, '_', $this->formatInternalEntityType($type));
+    }
+
+    /**
+     * Gets the entiy type from a file base name.
+     *
+     * @param   string  $baseName
+     * @return  string
+     */
+    public function getTypeFromFileBaseName($baseName)
+    {
+        return $this->formatInternalEntityType(str_replace('_', Configuration::INTERNAL_NS_DELIM, $baseName));
     }
 
     /**
@@ -92,13 +117,16 @@ class EntityFormatter
     /**
      * Formats an entity field (attribute/relationship) key.
      *
-     * @param   string  $key
      * @param   string  $format
      * @return  string
      */
-    public function formatField($key, $format)
+    public function formatField($key)
     {
-        return $this->doFormat($key, $format);
+        $format = $this->config->getFieldKeyFormat();
+
+        $key = $this->doFormat($key, $format);
+        $this->config->getValidator()->validateMemberName($key);
+        return $key;
     }
 
     /**
@@ -111,7 +139,7 @@ class EntityFormatter
      */
     protected function doFormat($string, $format)
     {
-        $this->validator->validateStringFormat($format);
+        $this->config->getValidator()->validateStringFormat($format);
         switch ($format) {
             case 'underscore':
                 return $this->inflector->underscore($string);

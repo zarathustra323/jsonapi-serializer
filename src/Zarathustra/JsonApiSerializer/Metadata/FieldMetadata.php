@@ -20,6 +20,13 @@ abstract class FieldMetadata
     public $key;
 
     /**
+     * The externally formatted field key.
+     *
+     * @var string
+     */
+    public $externalKey;
+
+    /**
      * Whether or not this field should be serialized.
      *
      * @var bool

@@ -49,6 +49,13 @@ class EntityMetadata implements AttributeInterface
     public $type;
 
     /**
+     * The externally formatted type.
+     *
+     * @var string
+     */
+    public $externalType;
+
+    /**
      * All attribute fields assigned to this entity.
      * An attribute is a "standard" field, such as a string, integer, array, etc.
      *
@@ -84,6 +91,7 @@ class EntityMetadata implements AttributeInterface
     public function merge(EntityMetadata $metadata)
     {
         $this->setType($metadata->type);
+        $this->externalType = $metadata->externalType;
         $this->setAbstract($metadata->isAbstract());
         $this->setPolymorphic($metadata->isPolymorphic());
         $this->extends = $metadata->extends;

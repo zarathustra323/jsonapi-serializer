@@ -123,7 +123,7 @@ class MetadataFactory implements MetadataFactoryInterface
      */
     public function getMetadataForType($type)
     {
-        $type = $this->getEntityFormatter()->getInternalType($type);
+        $type = $this->entityFormatter->formatInternalEntityType($type);
         if (null !== $metadata = $this->doLoadMetadata($type)) {
             // Found in memory or from cache implementation
             return $metadata;
@@ -131,17 +131,27 @@ class MetadataFactory implements MetadataFactoryInterface
 
         // Loop through the type hierarchy (extension) and merge metadata objects.
         foreach ($this->driver->getTypeHierarchy($type) as $hierType) {
+            $hierType = $this->entityFormatter->formatInternalEntityType($hierType);
+
             if (null !== $loaded = $this->doLoadMetadata($hierType)) {
                 // Found in memory or from cache implementation
                 $this->mergeMetadata($metadata, $loaded);
-                $this->setToMemory($loaded);
                 continue;
             }
 
             // Load from driver source
             $loaded = $this->driver->loadMetadataForType($hierType);
 
-            // Run any modifications on the loaded metadata here, if necessary.
+            // Format (and validate) the external entity type and set.
+            $loaded->externalType = $this->entityFormatter->formatExternalEntityType($hierType);
+
+            // Format (and validate) the external field keys for attributes and relationships.
+            foreach ($loaded->getAttributes() as $attribute) {
+                $attribute->externalKey = $this->entityFormatter->formatField($attribute->key);
+            }
+            foreach ($loaded->getRelationships() as $relationship) {
+                $relationship->externalKey = $this->entityFormatter->formatField($relationship->key);
+            }
 
             $this->mergeMetadata($metadata, $loaded);
             $this->doPutMetadata($loaded);

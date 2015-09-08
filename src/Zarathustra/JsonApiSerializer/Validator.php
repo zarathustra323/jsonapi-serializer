@@ -2,6 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer;
 
+use Zarathustra\JsonApiSerializer\DataTypes\TypeFactory;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 
 /**
@@ -13,12 +14,19 @@ use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
 class Validator
 {
     /**
+     * The attribute data type factory.
+     * Is used to ensure data types are registered.
+     *
+     * @var TypeFactory
+     */
+    private $typeFactory;
+
+    /**
      * Valid entity namespace delimiters.
      *
-     * @todo    Currently the '/' character (U+002F) is considered invalid. Should likely deprecate as a NS char.
      * @var     array
      */
-    private $namespaceDelimiters = ['/', '_', '-'];
+    private $namespaceDelimiters = ['_', '-', '__', '--'];
 
     /**
      * Valid entity string formats.
@@ -26,6 +34,30 @@ class Validator
      * @var array
      */
     private $stringFormats = ['dash', 'camelcase', 'studlycaps', 'underscore'];
+
+    /**
+     * Characters that are not allowed as starting or ending characters in member names.
+     *
+     * @var string
+     */
+    private $invalidBookends = '/^[-_ ]|.*[-_ ]$/i';
+
+    /**
+     * Characters the are globally disallowed in all member names
+     *
+     * @var string
+     */
+    private $invalidMemberChars = '/.*[\x{0000}-\x{001F}\x{0021}-\x{002C}\x{002E}-\x{002F}\x{003A}-\x{0040}\x{005B}-\x{005E}\x{0060}\x{007B}-\x{007F}].*/is';
+
+    /**
+     * Constructor.
+     *
+     * @param   TypeFactory     $typeFactory
+     */
+    public function __construct(TypeFactory $typeFactory)
+    {
+        $this->typeFactory = $typeFactory;
+    }
 
     /**
      * Validates a namespace delimiter.
@@ -38,6 +70,45 @@ class Validator
     {
         if (!in_array($delimiter, $this->namespaceDelimiters)) {
             throw new InvalidArgumentException(sprintf('The namespace delimiter "%s" is invalid. Valid delimiters are "%s"', $delimiter, implode(', ', $this->namespaceDelimiters)));
+        }
+        return true;
+    }
+
+    /**
+     * Validates a member name (such as entity types or entity field keys).
+     *
+     * @param   string  $name
+     * @return  bool
+     * @throws  InvalidArgumentException
+     */
+    public function validateMemberName($name)
+    {
+        $name = iconv(mb_detect_encoding($name), 'UTF-8', $name);
+        if (empty($name)) {
+            throw new InvalidArgumentException('A member name cannot be empty.');
+        }
+
+        if (preg_match($this->invalidMemberChars, $name, $matches)) {
+            throw new InvalidArgumentException('A member name contains an invalid character.');
+        }
+
+        if (preg_match($this->invalidBookends, $name)) {
+            throw new InvalidArgumentException('A member name cannot start or end with the following characters: "-", "_", " "');
+        }
+        return true;
+    }
+
+    /**
+     * Validates that the given attribute data type exists.
+     *
+     * @param   string  $dataType
+     * @return  bool
+     * @throws  InvalidArgumentException
+     */
+    public function validateDataType($dataType)
+    {
+        if (false === $this->typeFactory->hasType($dataType)) {
+            throw new InvalidArgumentException(sprintf('The data type "%s" does not exist.', $dataType));
         }
         return true;
     }

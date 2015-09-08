@@ -13,6 +13,8 @@ use \DateTime;
  */
 class Configuration
 {
+    const INTERNAL_NS_DELIM = '\\';
+
     /**
      * The API host name.
      *
@@ -33,6 +35,14 @@ class Configuration
      * @var string|null
      */
     private $rootEndpoint;
+
+    /**
+     * Whether namespaced model links should be built as resource endpoints.
+     * Example: Foo\Entity would be built as foo/entity when building a resource link.
+     *
+     * @var bool
+     */
+    private $namespacesAsResources = false;
 
     /**
      * The external entity namespace delimiter.
@@ -65,14 +75,24 @@ class Configuration
     /**
      * Constructor.
      *
-     * @param   Validator|null  $validator
+     * @param   Validator  $validator
      */
-    public function __construct(Validator $validator = null)
+    public function __construct(Validator $validator)
     {
-        $this->validator = $validator ?: new Validator();
-        $this->setNamespaceDelimiter('/');
+        $this->validator = $validator;
+        $this->setNamespaceDelimiter('__');
         $this->setEntityNameFormat('dash');
         $this->setFieldKeyFormat('dash');
+    }
+
+    /**
+     * Gets the validator service.
+     *
+     * @return  Validator
+     */
+    public function getValidator()
+    {
+        return $this->validator;
     }
 
     /**
@@ -139,6 +159,28 @@ class Configuration
     {
         $this->rootEndpoint = $rootEndpoint;
         return $this;
+    }
+
+    /**
+     * Sets whether namespaced model links should be build as resource endpoints.
+     *
+     * @param   bool    $bit
+     * @return  self
+     */
+    public function setNamespacesAsResources($bit = true)
+    {
+        $this->namespacesAsResources = (Boolean) $bit;
+        return $this;
+    }
+
+    /**
+     * Determines whether namespaced model links should be build as resource endpoints.
+     *
+     * @return  bool
+     */
+    public function useNamespacesAsResources()
+    {
+        return $this->namespacesAsResources;
     }
 
     /**
