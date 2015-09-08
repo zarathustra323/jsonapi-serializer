@@ -2,7 +2,7 @@
 
 namespace Zarathustra\JsonApiSerializer\DocumentStructure;
 
-class Resource implements RelatedDataInterface
+class Resource
 {
     use Traits\MetaEnabled;
 
@@ -167,7 +167,6 @@ class Resource implements RelatedDataInterface
      */
     public function addRelationship(Relationship $relationship)
     {
-        $relationship->setOwner($this);
         $this->relationships[$relationship->getKey()] = $relationship;
         return $this;
     }

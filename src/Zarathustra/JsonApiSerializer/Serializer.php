@@ -4,10 +4,11 @@ namespace Zarathustra\JsonApiSerializer;
 
 use Zarathustra\JsonApiSerializer\DataTypes\TypeFactory;
 use Zarathustra\JsonApiSerializer\Exception\RuntimeException;
+use Zarathustra\JsonApiSerializer\DocumentStructure\Document;
 use Zarathustra\JsonApiSerializer\DocumentStructure\Resource;
+use Zarathustra\JsonApiSerializer\DocumentStructure\Collection;
 use Zarathustra\JsonApiSerializer\DocumentStructure\Attribute;
 use Zarathustra\JsonApiSerializer\DocumentStructure\Relationship;
-use Zarathustra\JsonApiSerializer\DocumentStructure\ResourceCollection;
 use Zarathustra\JsonApiSerializer\Metadata\AttributeMetadata;
 use Zarathustra\JsonApiSerializer\Metadata\RelationshipMetadata;
 
@@ -89,15 +90,15 @@ class Serializer
      * @todo    Handle meta and included objects.
      * @todo    Handle sorting, pagination, etc - or should this be handled by the query/hydrator classes?
      *
-     * @param   Resource|ResourceCollection     $data
-     * @param   bool                            $encode
+     * @param   Document    $document
+     * @param   bool        $encode
      * @return  string|array
      */
-    public function serialize($data, $encode = true)
+    public function serialize(Document $document, $encode = true)
     {
         $encode = (Boolean) $encode;
         try {
-            $serialized = $this->doSerialize($data);
+            $serialized = $this->doSerialize($document->getPrimaryData());
         } catch (\Exception $e) {
             $serialized = $this->handleException($e);
         }
@@ -107,16 +108,18 @@ class Serializer
     /**
      * Performs the serialization using the provided document data.
      *
-     * @param   Resource|ResourceCollection     $data
+     * @param   Resource|ResourceCollection|null    $data
      * @return  array
      * @throws  RuntimeException If the provided data is not supported.
      */
     protected function doSerialize($data)
     {
-        if ($data instanceof ResourceCollection) {
+        if ($data instanceof Collection) {
             $serialized['data'] = $this->serializeCollection($data);
         } elseif ($data instanceof Resource) {
             $serialized['data'] = $this->serializeResource($data);
+        } elseif (null === $data || [] === $data) {
+            $serialized['data'] = $data;
         } else {
             throw new RuntimeException('Unable to serialize the provided data.');
         }
@@ -155,33 +158,28 @@ class Serializer
             'id'    => $resource->getId(),
         ];
         if ($this->depth > 0) {
-            $this->includeResoure($resource);
+            $this->includeResource($resource);
             return $serialized;
         }
 
-        foreach ($resource->getAttributes() as $key => $attribute) {
-            if (false === $metadata->hasAttribute($key)) {
-                continue;
-            }
-            $attrMeta = $metadata->getAttribute($key);
+        foreach ($metadata->getAttributes() as $key => $attrMeta) {
             if (false === $attrMeta->shouldSerialize()) {
                 continue;
             }
+            $attribute = $resource->getAttribute($key);
             $formattedKey = $attrMeta->externalKey;
             $serialized['attributes'][$formattedKey] = $this->serializeAttribute($attribute, $attrMeta);
         }
+
         $serialized['links'] = ['self' => $this->buildLink($metadata->externalType, $resource->getId())];
 
-        foreach ($resource->getRelationships() as $key => $relationship) {
-            if (false === $metadata->hasRelationship($key)) {
-                continue;
-            }
-            $relMeta = $metadata->getRelationship($key);
+        foreach ($metadata->getRelationships() as $key => $relMeta) {
             if (false === $relMeta->shouldSerialize()) {
                 continue;
             }
+            $relationship = $resource->getRelationship($key);
             $formattedKey = $relMeta->externalKey;
-            $serialized['relationships'][$formattedKey] = $this->serializeRelationship($relationship, $relMeta);
+            $serialized['relationships'][$formattedKey] = $this->serializeRelationship($resource, $relationship, $relMeta);
         }
         return $serialized;
     }
@@ -189,13 +187,11 @@ class Serializer
     /**
      * Serializes a collection of document resources.
      *
-     * @param   ResourceCollection  $collection
+     * @param   Collection  $collection
      * @return  array
      */
-    protected function serializeCollection(ResourceCollection $collection)
+    protected function serializeCollection(Collection $collection)
     {
-        $this->validateCollection($collection);
-
         $serialized = [];
         foreach ($collection as $resource) {
             $serialized[] = $this->serializeResource($resource);
@@ -206,12 +202,15 @@ class Serializer
     /**
      * Serializes an attribute value.
      *
-     * @param   Attribute           $attribute
+     * @param   Attribute|null      $attribute
      * @param   AttributeMetadata   $attrMeta
      * @return  mixed
      */
-    protected function serializeAttribute(Attribute $attribute, AttributeMetadata $attrMeta)
+    protected function serializeAttribute(Attribute $attribute = null, AttributeMetadata $attrMeta)
     {
+        if (null === $attribute) {
+            return $this->typeFactory->convertToApiValue($attrMeta->type, null);
+        }
         if ('object' === $attrMeta->type && $attrMeta->hasAttributes()) {
             // If object attributes (sub-attributes) are defined, attempt to convert them to the proper data types.
             $serialized = [];
@@ -235,31 +234,23 @@ class Serializer
      *
      * @todo    Need support for meta.
      *
-     * @param   Relationship            $relationship
+     * @param   Resource                $owner
+     * @param   Relationship|null       $relationship
      * @param   RelationshipMetadata    $relMeta
-     * @return  null|array
-     * @throws  RuntimeException        If the relationship data type doesn't match the requirements for the relationship type.
+     * @return  array
      */
-    protected function serializeRelationship(Relationship $relationship, RelationshipMetadata $relMeta)
+    protected function serializeRelationship(Resource $owner, Relationship $relationship = null, RelationshipMetadata $relMeta)
     {
-        if (false === $relationship->hasData()) {
+        if (null === $relationship || false === $relationship->hasData()) {
             // No relationship data found, use default value.
-            return $relMeta->getDefaultEmptyValue();
-        }
-
-        if (true === $relMeta->isOne() && false === $relationship->isResource()) {
-            // Invalid. Cannot not serialize a relationship one without a resource object.
-            throw new RuntimeException('Cannot serialize a relationship type of "one" without any resource data');
-        }
-        if (true === $relMeta->isMany() && false === $relationship->isCollection()) {
-            // Invalid. Cannot not serialize a relationship many without a collection object.
-            throw new RuntimeException('Cannot serialize a relationship type of "many" without any resource collection data');
+            $data = $relMeta->getDefaultEmptyValue();
+        } else {
+            $data = $relationship->getData();
         }
 
         $this->increaseDepth();
-        $serialized = $this->doSerialize($relationship->getData());
 
-        $owner = $relationship->getOwner();
+        $serialized = $this->doSerialize($data);
         $ownerMeta = $this->getMetadataFor($owner->getType());
 
         $serialized['links'] = [
@@ -309,7 +300,7 @@ class Serializer
      * @param   Resource    $resource
      * @return  self
      */
-    protected function includeResoure(Resource $resource)
+    protected function includeResource(Resource $resource)
     {
         if ($resource->isCompleteObject()) {
             $this->toInclude[$resource->getCompositeKey()] = $resource;
@@ -350,29 +341,6 @@ class Serializer
     protected function encode(array $data)
     {
         return json_encode($data);
-    }
-
-    /**
-     * Validates that a resource collection's included resources are valid.
-     * Ensures polymorphic collections do not contain resources that aren't a descendant.
-     * Ensures that non-polymorphic collections do not contain resources of other entity types.
-     *
-     * @param   ResourceCollection  $collection
-     * @return  bool
-     * @throws  RuntimeException
-     */
-    protected function validateCollection(ResourceCollection $collection)
-    {
-        $type = $collection->getType();
-        $meta = $this->getMetadataFor($type);
-        foreach ($collection->getResourceTypes() as $resourceType) {
-            if (true === $meta->isPolymorphic() && false === $this->em->isDescendantOf($resourceType, $type)) {
-                throw new RuntimeException(sprintf('This resource collection is polymorphic and only descendents of "%s" are supported. Resource "%s" was present in the collection.', $resourceType, $type));
-            } elseif (false === $meta->isPolymorphic() && $type !== $resourceType) {
-                throw new RuntimeException(sprintf('This resource collection only supports resources of type "%s" - resource type "%s" was provided', $type, $resourceType));
-            }
-        }
-        return true;
     }
 
     /**

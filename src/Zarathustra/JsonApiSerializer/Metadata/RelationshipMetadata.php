@@ -90,7 +90,7 @@ class RelationshipMetadata extends FieldMetadata
      */
     public function getDefaultEmptyValue()
     {
-        if ($this->isOne) {
+        if ($this->isOne()) {
             return null;
         }
         return [];

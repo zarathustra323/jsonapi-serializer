@@ -21,11 +21,11 @@ class Relationship
     protected $data;
 
     /**
-     * The owning resource of the relationship.
+     * Whether the relationship is one or many.
      *
-     * @var Resource
+     * @var string
      */
-    protected $owner;
+    protected $relType;
 
     /**
      * Constructor.
@@ -33,34 +33,33 @@ class Relationship
      * @param   string                      $key
      * @param   RelatedDataInterface|null   $data
      */
-    public function __construct($key, RelatedDataInterface $data = null)
+    public function __construct($key, $relType)
     {
         $this->key = $key;
-        if (null !== $data) {
-            $this->pushData($data);
+        $this->relType = $relType;
+        if ($this->isMany()) {
+            $this->data = new Collection();
         }
     }
 
     /**
-     * Gets the owning resource of this relationship.
+     * Determines if this is an is-one relationship.
      *
-     * @return  Resource
+     * @return  bool
      */
-    public function getOwner()
+    public function isOne()
     {
-        return $this->owner;
+        return false === $this->isMany();
     }
 
     /**
-     * Sets the owning resource of this relationship.
+     * Determines if this is an is-many relationship.
      *
-     * @param   Resource    $owner
-     * @return  self
+     * @return  bool
      */
-    public function setOwner(Resource $owner)
+    public function isMany()
     {
-        $this->owner = $owner;
-        return $this;
+        return 'many' === $this->relType;
     }
 
     /**
@@ -70,33 +69,10 @@ class Relationship
      */
     public function hasData()
     {
-        return null !== $this->getData();
-    }
-
-    /**
-     * Determines if this relationship is a collection of resources.
-     *
-     * @return  bool
-     */
-    public function isCollection()
-    {
-        if (false === $this->hasData()) {
-            return false;
+        if ($this->isOne()) {
+            return null !== $this->getData();
         }
-        return $this->getData() instanceof ResourceCollection;
-    }
-
-    /**
-     * Determines if this relationship is a single resource.
-     *
-     * @return  bool
-     */
-    public function isResource()
-    {
-        if (false === $this->hasData()) {
-            return false;
-        }
-        return $this->getData() instanceof Resource;
+        return 0 < count($this->getData());
     }
 
     /**
@@ -112,12 +88,16 @@ class Relationship
     /**
      * Applys the relationship data.
      *
-     * @param   RelatedDataInterface
+     * @param   Resource    $resource
      * @return  self
      */
-    public function pushData(RelatedDataInterface $data)
+    public function pushData(Resource $resource)
     {
-        $this->data = $data;
+        if ($this->isMany()) {
+            $this->data[] = $resource;
+            return $this;
+        }
+        $this->data = $resource;
         return $this;
     }
 

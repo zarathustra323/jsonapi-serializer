@@ -4,6 +4,7 @@ namespace Zarathustra\JsonApiSerializer\DocumentStructure;
 
 use \Iterator;
 use \ArrayAccess;
+use \Countable;
 
 /**
  * Collection object that contains multiple resource documents.
@@ -11,17 +12,8 @@ use \ArrayAccess;
  *
  * @author Jacob Bare <jbare@southcomm.com>
  */
-class ResourceCollection implements Iterator, ArrayAccess, RelatedDataInterface
+class Collection implements Iterator, ArrayAccess, Countable
 {
-    use Traits\MetaEnabled;
-
-    /**
-     * The resource entity type describing the collection.
-     *
-     * @var string
-     */
-    protected $type;
-
     /**
      * Resources assign to this collection.
      *
@@ -41,20 +33,9 @@ class ResourceCollection implements Iterator, ArrayAccess, RelatedDataInterface
      *
      * @param   string  $type
      */
-    public function __construct($type)
+    public function __construct()
     {
-        $this->type = $type;
         $this->pos = 0;
-    }
-
-    /**
-     * Gets the primary entity type for this resource collection.
-     *
-     * @return  string
-     */
-    public function getType()
-    {
-        return $this->type;
     }
 
     /**
@@ -91,6 +72,14 @@ class ResourceCollection implements Iterator, ArrayAccess, RelatedDataInterface
     public function all()
     {
         return $this->resources;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function count()
+    {
+        return count($this->resources);
     }
 
     /**
