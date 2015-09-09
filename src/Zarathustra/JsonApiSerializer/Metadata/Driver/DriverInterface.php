@@ -14,7 +14,7 @@ interface DriverInterface
      *
      * @param   string  $type
      * @return  \Zarathustra\JsonApiSerializer\Metadata\EntityMetadata
-     * @throws  \Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException If the type cannot be found.
+     * @throws  \Zarathustra\JsonApiSerializer\Exception\MetadataException If the type cannot be found.
      */
     public function loadMetadataForType($type);
 
@@ -29,6 +29,7 @@ interface DriverInterface
      * Gets the type hierarchy (via extension) for an entity type.
      * Is recursive.
      *
+     * @todo    This should throw a Metadata exception, not an InvalidArgumentException. It would be easier to catch.
      * @param   string  $type
      * @param   array   $types
      * @return  array

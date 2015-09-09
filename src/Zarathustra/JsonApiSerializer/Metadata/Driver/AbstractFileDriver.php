@@ -5,6 +5,7 @@ namespace Zarathustra\JsonApiSerializer\Metadata\Driver;
 use Zarathustra\JsonApiSerializer\Validator;
 use Zarathustra\JsonApiSerializer\Metadata\EntityMetadata;
 use Zarathustra\JsonApiSerializer\Exception\InvalidArgumentException;
+use Zarathustra\JsonApiSerializer\Exception\MetadataException;
 
 /**
  * Abstract metadata file driver.
@@ -62,6 +63,10 @@ abstract class AbstractFileDriver implements DriverInterface
             return $this->arrayCache[$type];
         }
         $path = $this->getFilePathForType($type);
+        if (null === $path) {
+            throw MetadataException::mappingNotFound($type);
+        }
+
         return $this->arrayCache[$type] = $this->loadMetadataFromFile($type, $path);
     }
 
@@ -69,15 +74,11 @@ abstract class AbstractFileDriver implements DriverInterface
      * Returns the file path for an entity type.
      *
      * @param   string  $type
-     * @return  string
-     * @throws  InvalidArgumentException
+     * @return  string|null
      */
     protected function getFilePathForType($type)
     {
-        if (null === $path = $this->fileLocator->findFileForType($type, $this->getExtension())) {
-            throw new InvalidArgumentException(sprintf('Unable to locate a metadata mapping definition for entity type "%s"', $type));
-        }
-        return $path;
+        return $this->fileLocator->findFileForType($type, $this->getExtension());
     }
 
     /**
