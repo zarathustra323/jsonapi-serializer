@@ -110,6 +110,10 @@ class DoctrineMongoDBDriver extends AbstractDoctrineDriver
                     $attribute = new Metadata\AttributeMetadata($fieldKey, $apiDataType);
                     break;
             }
+            if (true === $this->shouldExclude($this->getTypeForClassName($metadata->getName()), $fieldKey)) {
+                $attribute->setSerialize(false);
+            }
+
             $entity->addAttribute($attribute);
         }
         return $entity;
@@ -146,6 +150,11 @@ class DoctrineMongoDBDriver extends AbstractDoctrineDriver
             if (isset($mapping['isInverseSide']) && true === $mapping['isInverseSide']) {
                 $relationship->isInverse = true;
             }
+
+            if (true === $this->shouldExclude($this->getTypeForClassName($metadata->getName()), $fieldKey)) {
+                $relationship->setSerialize(false);
+            }
+
             $entity->addRelationship($relationship);
         }
         return $entity;

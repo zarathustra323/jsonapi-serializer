@@ -51,6 +51,13 @@ abstract class AbstractDoctrineDriver implements DriverInterface
     protected $allEntityTypes;
 
     /**
+     * An array of field excludes, keyed by entity type, or '*' for all types.
+     *
+     * @var array
+     */
+    protected $excludes = [];
+
+    /**
      * Constructor.
      *
      * @param   ClassMetadataFactory    $mf
@@ -137,6 +144,36 @@ abstract class AbstractDoctrineDriver implements DriverInterface
      * {@inheritDoc}
      */
     abstract public function getTypeHierarchy($type, array $types = []);
+
+    /**
+     * Adds a serializer exclude, based on entity type and field key.
+     *
+     * @param   string          $type       The entity type, or "*" for all types.
+     * @param   string|array    $fieldKeys  The fields to exlude.
+     * @return  self
+     */
+    public function addExclude($type, $fieldKeys)
+    {
+        $fieldKeys = (Array) $fieldKeys;
+        $fieldKeys = !isset($this->excludes[$type]) ? $fieldKeys : array_merge($this->excludes[$type], $fieldKeys);
+        $this->excludes[$type] = array_unique($fieldKeys);
+        return $this;
+    }
+
+    /**
+     * Determines if a field should be excluded from serialization.
+     *
+     * @param   string  $type       The entity type.
+     * @param   string  $fieldKey   The field key.
+     * @return  bool
+     */
+    public function shouldExclude($type, $fieldKey)
+    {
+        if (isset($this->excludes['*']) && in_array($fieldKey, $this->excludes['*'])) {
+            return true;
+        }
+        return isset($this->excludes[$type]) && in_array($fieldKey, $this->excludes[$type]);
+    }
 
     /**
      * Determines if a Doctrine ClassMetadata instance should be filtered (not included).
