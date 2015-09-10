@@ -71,6 +71,13 @@ abstract class AbstractDoctrineDriver implements DriverInterface
         return $this->loadFromClassMetadata($this->doLoadClassMetadata($type));
     }
 
+    /**
+     * Loads Doctrine ClassMetadata for an API entity type.
+     *
+     * @param   string  $type
+     * @return  ClassMetadata
+     * @throws  MetadataException   If the Doctrine ClassMetadata does not exist.
+     */
     protected function doLoadClassMetadata($type)
     {
         if (false === $this->classMetadataExists($type)) {
@@ -81,6 +88,12 @@ abstract class AbstractDoctrineDriver implements DriverInterface
         return $this->mf->getMetadataFor($className);
     }
 
+    /**
+     * Determines if Doctrine ClassMetadata exists for an API entity type.
+     *
+     * @param   string  $type
+     * @return  bool
+     */
     protected function classMetadataExists($type)
     {
         $className = $this->getClassNameForType($type);
@@ -96,6 +109,7 @@ abstract class AbstractDoctrineDriver implements DriverInterface
     /**
      * Loads an API entity metadata object from Doctrine ClassMetadata.
      *
+     * @abstract
      * @param   ClassMetadata   $metadata
      * @return  \Zarathustra\JsonApiSerializer\Metadata\EntityMetadata
      */
