@@ -11,7 +11,8 @@
     ],
     "autoload": {
         "psr-0": {
-            "Zarathustra\\JsonApiSerializer": "src/"
+            "Zarathustra\\JsonApiSerializer": "src/",
+            "Zarathustra\\ModlrData": "src/"
         }
     },
     "require": {
