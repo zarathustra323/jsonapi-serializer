@@ -11,18 +11,11 @@
     ],
     "autoload": {
         "psr-0": {
-            "Zarathustra\\JsonApiSerializer": "src/",
-            "Zarathustra\\ModlrData": "src/"
+            "Zarathustra\\JsonApiSerializer": "src/"
         }
     },
     "require": {
         "php": ">=5.4",
-        "zarathustra/common": "<=1.0"
-    },
-    "suggest": {
-        "symfony/yaml": "Required if you'd like load metadata from YAML format.",
-        "ext-igbinary": "Required if you'd like to use the provided igbinary metadata cache serialization.",
-        "ext-redis": "Required if you'd like to cache metadata using Redis.",
-        "ext-APC": "Required if you'd like to cache metadata using APC."
+        "zarathustra/modlr-data": "<=1.0"
     }
 }
