@@ -1,8 +1,0 @@
-PostStream:
-    attributes:
-        title:
-            type: string
-        url:
-            type: string
-        streamId:
-            type: string

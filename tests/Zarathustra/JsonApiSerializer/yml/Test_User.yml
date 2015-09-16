@@ -1,6 +1,0 @@
-Test\User:
-    entity:
-        abstract: false
-    attributes:
-        name:
-            type: string

@@ -1,7 +1,0 @@
-Person:
-    entity:
-        namespace: test
-        abstract: false
-    attributes:
-        name:
-            type: string
